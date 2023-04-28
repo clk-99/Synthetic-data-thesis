@@ -10,7 +10,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.linear_model import Lasso, Ridge, ElasticNet, LogisticRegression
 from sklearn.preprocessing import PolynomialFeatures, MinMaxScaler
 import scipy.stats as ss
-from dython.nominal import theils_u, compute_associations, numerical_encoding
+from dython.nominal import associations, numerical_encoding
 
 
 def tabsyndex(real_data, fake_data, cat_cols, target_col=-1, target_type='regr'):
@@ -24,15 +24,19 @@ def tabsyndex(real_data, fake_data, cat_cols, target_col=-1, target_type='regr')
   fake_data_norm = scaler.transform(fake_data)
   fake_data_norm = pd.DataFrame(fake_data_norm, columns=fake_data.columns)
   
-  def basic_stats():
-    real_mean = np.mean(real_data, axis=0)
-    fake_mean = np.mean(fake_data, axis=0)
+  def basic_stats(cat_cols):
+    #aanpassen op alleen numerieke kolommen van dataset
+    real_df = real_data.drop(real_data.columns[cat_cols], axis=1)
+    fake_df = fake_data.drop(fake_data.columns[cat_cols], axis=1)
 
-    real_std = np.std(real_data, axis=0)
-    fake_std = np.std(fake_data, axis=0)
+    real_mean = np.mean(real_df, axis=0)
+    fake_mean = np.mean(fake_df, axis=0)
 
-    real_median = np.median(real_data, axis = 0)
-    fake_median = np.median(fake_data, axis = 0)
+    real_std = np.std(real_df, axis=0)
+    fake_std = np.std(fake_df, axis=0)
+
+    real_median = np.median(real_df, axis = 0)
+    fake_median = np.median(fake_df, axis = 0)
 
 
     mean_mape = np.clip(mape(real_mean, fake_mean), 0, 1)
@@ -40,6 +44,7 @@ def tabsyndex(real_data, fake_data, cat_cols, target_col=-1, target_type='regr')
     std_mape = np.clip(mape(real_std, fake_std), 0, 1)
     score += np.sum(std_mape)
     median_mape = np.clip(mape(real_median, fake_median), 0, 1)
+
     score += np.sum(median_mape)
     score /= len(real_mean)+len(real_std) + len(real_median)
 
@@ -48,8 +53,8 @@ def tabsyndex(real_data, fake_data, cat_cols, target_col=-1, target_type='regr')
     return score
 
   def corr():
-    real_corr = compute_associations(real_data, nominal_columns=cat_cols, theil_u=True).astype(float)
-    fake_corr = compute_associations(fake_data, nominal_columns=cat_cols, theil_u=True).astype(float)
+    real_corr = associations(real_data, nominal_columns=cat_cols, nom_nom_assoc='theil', compute_only=True)['corr'].astype(float)
+    fake_corr = associations(fake_data, nominal_columns=cat_cols, nom_nom_assoc='theil', compute_only=True)['corr'].astype(float)
 
     real_log_corr = np.sign(real_corr)*np.log(abs(real_corr))
     fake_log_corr = np.sign(fake_corr)*np.log(abs(fake_corr))
@@ -189,7 +194,7 @@ def tabsyndex(real_data, fake_data, cat_cols, target_col=-1, target_type='regr')
     #print('5:', sup)
     return sup
   
-  basic_score = basic_stats()
+  basic_score = basic_stats(cat_cols)
   corr_score = corr()
   ml_score = ml_efficacy()
   pmse_score = pmse()
