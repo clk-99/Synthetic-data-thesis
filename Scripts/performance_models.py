@@ -7,7 +7,7 @@ import random
 from sdmetrics.single_table import NewRowSynthesis
 import os
 
-os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2'
+os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2' #adjust to version of LISA
 
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri
@@ -198,10 +198,11 @@ def tune_performance_ctgan(data_type,data,metadata,performance_ctgan,output_path
     
     return performance_ctgan
 
-def tune_performance_arf(data_type,data,output_path):
+def tune_performance_arf(data_type,data,output_path,cat_columns):
     performance_arf = dict()
     i=0
     n=10
+    os.chdir(output_path)
 
     while i<n:
         #converting data into r object for passing into r function
@@ -219,7 +220,7 @@ def tune_performance_arf(data_type,data,output_path):
         model_name = 'ARF_' + str(nr_trees) + '.rds'
 
         #Invoking the R function and getting result
-        synthetic_df_r = arf_function_r(df_r,nr_trees,output_path,model_name)
+        synthetic_df_r = arf_function_r(df_r,nr_trees,cat_columns,model_name)
 
         #Convert back to pandas dataframe
         with localconverter(ro.default_converter + pandas2ri.converter):
@@ -230,7 +231,9 @@ def tune_performance_arf(data_type,data,output_path):
 
     return  performance_arf
 
-def tune_performance_cart(data_type,data,output_path):
+def tune_performance_cart(data_type,data,output_path,cat_columns):
+
+    os.chdir(output_path)
 
     #converting data into r object for passing into r function
     with localconverter(ro.default_converter + pandas2ri.converter):
@@ -240,7 +243,7 @@ def tune_performance_cart(data_type,data,output_path):
     model_name = 'CART.rds'
 
     #Invoking the R function and getting result
-    synthetic_df_r = cart_function_r(df_r,output_path,model_name)
+    synthetic_df_r = cart_function_r(df_r,model_name,cat_columns)
 
     #Convert back to pandas dataframe
     with localconverter(ro.default_converter + pandas2ri.converter):

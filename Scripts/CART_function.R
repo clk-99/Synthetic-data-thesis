@@ -2,32 +2,21 @@ library(synthpop)
 library(tidyverse)
 library(Gmisc)
 
-run_cart <- function(df,output_path,model_name){
+run_cart <- function(df,model_name,cat_columns){
 
-  setwd(output_path)
-  features <- colnames(df)
-  sequence <- rep(0,length(features))
+  sequence <- rep(0,length(colnames(df)))
 
   for (i in 1:ncol(df)){
-    if(is.character(df[,i])){
+    if(colnames(df[i]) %in% cat_columns){
       df[,i]=factor(df[,i])
       nr_factors <- nlevels(df[,i])
       sequence[i] <- nr_factors
-    }
-    else if(is.integer(df[,i])){
-      min_max_values <- range(df[,i])
-      if(min_max_values[2]<=4){
-        df[,i]=factor(df[,i])
-        nr_factors <- nlevels(df[,i])
-        sequence[i] <- nr_factors
       }else{
         df[,i]=as.numeric(df[,i])
         sequence[i] <- 1
       }
-    } else {
-       sequence[i] <- 1
-    }
   }
+  print(sequence)
   df_sequence <- as.matrix(sequence)
   
   cart <- syn(df, visit.sequence = order(df_sequence))

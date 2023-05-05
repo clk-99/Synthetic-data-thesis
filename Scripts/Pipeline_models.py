@@ -7,7 +7,11 @@ import random
 import torch
 import sklearn
 import argparse
+
+#import self-written functions
 import performance_models as pm
+import prep_data 
+
 import os
 from pathlib import Path
 from sdv.metadata import SingleTableMetadata
@@ -26,20 +30,22 @@ parser.add_argument("model", help='Model to generate synthetic data',type=str,de
 
 args = parser.parse_args()
 data_folder = '../Data'
+data_folder_r = '~/Data'
 #toevoegen van kleine data analyse
 
 if args.dataset == 'bank':
     data_path = data_folder + '/BANK_CUSTOMER_CHURN/Bank_Customer_Churn_Prediction.csv'
-    file = open(data_path, encoding='utf8')
-    df_bank = pd.read_csv(file, sep=',')
-    df_bank.drop('customer_id',axis=1,inplace=True)
-    features = df_bank.iloc[:,:-1]
-    target = df_bank.iloc[:,-1]
-    X_train, X_test, y_train, y_test = train_test_split(features,target,test_size=0.20,random_state=12) #voeg nog stratify parameter toe
-    real_train_data = pd.concat([X_train.reset_index(drop=True),
-                                    y_train.reset_index(drop=True)],axis=1)
-    real_train_data.to_csv(data_folder + '/BANK_CUSTOMER_CHURN/BANK_TRAIN_SET.csv',index_label='Index')
-    real_train_data.columns = df_bank.columns.to_list()
+    # file = open(data_path, encoding='utf8')
+    # df_bank = pd.read_csv(file, sep=',')
+    # df_bank.drop('customer_id',axis=1,inplace=True)
+    # features = df_bank.iloc[:,:-1]
+    # target = df_bank.iloc[:,-1]
+    # X_train, X_test, y_train, y_test = train_test_split(features,target,test_size=0.20,random_state=12) #voeg nog stratify parameter toe
+    # real_train_data = pd.concat([X_train.reset_index(drop=True),
+    #                                 y_train.reset_index(drop=True)],axis=1)
+    # real_train_data.to_csv(data_folder + '/BANK_CUSTOMER_CHURN/BANK_TRAIN_SET.csv',index_label='Index')
+    real_train_data, target, numerical_var, categorical_vars = prep_data.main(data_path,args.dataset)
+    #real_train_data.columns = df_bank.columns.to_list()
     metadata = SingleTableMetadata()
     metadata.detect_from_dataframe(data=real_train_data)
     table_metadata = metadata.to_dict()
@@ -61,15 +67,8 @@ if args.dataset == 'bank':
 
 if args.dataset == 'heart':
     data_path = data_folder + '/HEART_ATTACK_PREDICTION/heart.csv'
-    file = open(data_path, encoding='utf8')
-    df_heart = pd.read_csv(file, sep=',')
-    features = df_heart.iloc[:,:-1]
-    target = df_heart.iloc[:,-1]
-    X_train, X_test, y_train, y_test = train_test_split(features,target,test_size=0.20,random_state=12) #voeg nog stratify parameter toe
-    real_train_data = pd.concat([X_train.reset_index(drop=True),
-                                    y_train.reset_index(drop=True)],axis=1)
-    real_train_data.to_csv(data_folder + '/HEART_ATTACK_PREDICTION/HEART_TRAIN_SET.csv',index_label='Index')
-    real_train_data.columns = df_heart.columns.to_list()
+    cat_columns =  ['sex','thal','target']
+    real_train_data, target, numerical_var, categorical_vars = prep_data.main(data_path,args.dataset,cat_columns) #new adjustment of code!
     metadata = SingleTableMetadata()
     metadata.detect_from_dataframe(data=real_train_data)
     table_metadata = metadata.to_dict()
@@ -81,25 +80,17 @@ if args.dataset == 'heart':
         synthetic_tvae = pm.tune_performance_tvae('heart',real_train_data,metadata,None,output_path)
     if args.model == 'arf':
         output_path = data_folder + '/HEART_ATTACK_PREDICTION/ARF/'
-        synthetic_arf = pm.tune_performance_arf('heart',real_train_data,str(output_path))
+        synthetic_arf = pm.tune_performance_arf('heart',real_train_data,str(output_path),cat_columns)
     if args.model == 'cart':
         output_path = data_folder + '/HEART_ATTACK_PREDICTION/CART/'
-        synthetic_cart = pm.tune_performance_cart('heart',real_train_data,str(output_path))
+        synthetic_cart = pm.tune_performance_cart('heart',real_train_data,str(output_path),cat_columns)
     if args.model == 'tabddpm':
         output_path = data_folder + '/HEART_ATTACK_PREDICTION/TABDDPM'
         print('d')
 
 if args.dataset == 'adult':
     data_path = data_folder + '/ADULT_CENSUS_INCOME/adult.csv'
-    file = open(data_path, encoding='utf8')
-    df_adult = pd.read_csv(file, sep=',')
-    features = df_adult.iloc[:,:-1]
-    target = df_adult.iloc[:,-1]
-    X_train, X_test, y_train, y_test = train_test_split(features,target,test_size=0.20,random_state=12) #voeg nog stratify parameter toe
-    real_train_data = pd.concat([X_train.reset_index(drop=True),
-                                    y_train.reset_index(drop=True)],axis=1)
-    real_train_data.to_csv(data_folder + '/ADULT_CENSUS_INCOME/ADULT_TRAIN_SET.csv',index_label='Index')
-    real_train_data.columns = df_adult.columns.to_list()
+    real_train_data, target, numerical_var, categorical_vars = prep_data.main(data_path,args.dataset)
     metadata = SingleTableMetadata()
     metadata.detect_from_dataframe(data=real_train_data)
     table_metadata = metadata.to_dict()
@@ -120,16 +111,8 @@ if args.dataset == 'adult':
         print('d')
 
 if args.dataset == 'wine':
-    data_path = data_folder + '/WINE_QUALITY/wine.csv'
-    file = open(data_path, encoding='utf8')
-    df_wine = pd.read_csv(file, sep=',')
-    features = df_wine.iloc[:,:-1]
-    target = df_wine.iloc[:,-1]
-    X_train, X_test, y_train, y_test = train_test_split(features,target,test_size=0.20,random_state=12) #voeg nog stratify parameter toe
-    real_train_data = pd.concat([X_train.reset_index(drop=True),
-                                    y_train.reset_index(drop=True)],axis=1)
-    real_train_data.to_csv(data_folder + '/WINE_QUALITY/WINE_TRAIN_SET.csv',index_label='Index')
-    real_train_data.columns = df_wine.columns.to_list()
+    data_path = data_folder + '/WINE_QUALITY/wine.csv' 
+    real_train_data, target, numerical_var, categorical_vars = prep_data.main(data_path,args.dataset)
     metadata = SingleTableMetadata()
     metadata.detect_from_dataframe(data=real_train_data)
     table_metadata = metadata.to_dict()
