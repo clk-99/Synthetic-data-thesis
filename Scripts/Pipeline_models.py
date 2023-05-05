@@ -35,7 +35,7 @@ data_folder = '../Data'
 if args.dataset == 'bank':
     data_path = data_folder + '/BANK_MARKETING/bank-additional-full.csv'
     cat_columns = ['job','marital','education','default','housing','loan','contact','month','day_of_week','poutcome','y']
-    real_train_data, target, numerical_var, categorical_vars = prep_data.main(data_path,args.dataset,cat_columns)
+    real_train_data, target = prep_data.main(data_path,args.dataset,cat_columns)
     metadata = SingleTableMetadata()
     metadata.detect_from_dataframe(data=real_train_data)
     table_metadata = metadata.to_dict()
@@ -58,7 +58,7 @@ if args.dataset == 'bank':
 if args.dataset == 'heart':
     data_path = data_folder + '/HEART_ATTACK_PREDICTION/heart.csv'
     cat_columns =  ['sex','cp','fbs','restecg','exang','slope','thal','target']
-    real_train_data, target, numerical_var, categorical_vars = prep_data.main(data_path,args.dataset,cat_columns) #new adjustment of code!
+    real_train_data, target = prep_data.main(data_path,args.dataset,cat_columns) #new adjustment of code!
     metadata = SingleTableMetadata()
     metadata.detect_from_dataframe(data=real_train_data)
     table_metadata = metadata.to_dict()
@@ -81,7 +81,7 @@ if args.dataset == 'heart':
 if args.dataset == 'adult':
     data_path = data_folder + '/ADULT_CENSUS_INCOME/adult.csv'
     cat_columns = ['workclass','education','marital-status','occupation','relationship','race','sex','native-country','class'] 
-    real_train_data, target, numerical_var, categorical_vars = prep_data.main(data_path,args.dataset,cat_columns)
+    real_train_data, target = prep_data.main(data_path,args.dataset,cat_columns)
     metadata = SingleTableMetadata()
     metadata.detect_from_dataframe(data=real_train_data)
     table_metadata = metadata.to_dict()
@@ -103,8 +103,8 @@ if args.dataset == 'adult':
 
 if args.dataset == 'wine':
     data_path = data_folder + '/WINE_QUALITY/wine.csv' 
-    cat_columns = [] #still empty
-    real_train_data, target, numerical_var, categorical_vars = prep_data.main(data_path,args.dataset,cat_columns)
+    cat_columns = ['quality'] 
+    real_train_data, target = prep_data.main(data_path,args.dataset,cat_columns)
     metadata = SingleTableMetadata()
     metadata.detect_from_dataframe(data=real_train_data)
     table_metadata = metadata.to_dict()
