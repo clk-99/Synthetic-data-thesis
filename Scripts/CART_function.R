@@ -16,7 +16,6 @@ run_cart <- function(df,model_name,cat_columns){
         sequence[i] <- 1
       }
   }
-  print(sequence)
   df_sequence <- as.matrix(sequence)
   
   cart <- syn(df, visit.sequence = order(df_sequence))
