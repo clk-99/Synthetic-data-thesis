@@ -11,7 +11,7 @@ from sdv.single_table import CTGANSynthesizer, TVAESynthesizer
 
 import os
 
-os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2'
+os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2' #adjust to the version on LISA!!
 
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri
@@ -36,7 +36,6 @@ args = parser.parse_args()
 data_folder = '../Data' 
 
 def evaluate_models(real_data,data_type,data_path,cat_columns,target_type='class'):
-    #cat_columns = real_data.select_dtypes(exclude=['int','float']).columns.tolist()
     models = ['ARF','CART'] #,'CTGAN','TVAE']
     results = pd.DataFrame(columns=['Model_type','Dataset','TabSynDex_score','Basic_score','Correlation_score','Machine_learning_efficiency_score','Support_coverage_score','PMSE_score'])
     for m in models:
@@ -53,7 +52,7 @@ def evaluate_models(real_data,data_type,data_path,cat_columns,target_type='class
                     with localconverter(ro.default_converter + pandas2ri.converter):
                         df_r = ro.conversion.py2rpy(real_data)
 
-                    synthetic_df_r = load_arf_r(df_r,str(output_path),result.name)
+                    synthetic_df_r = load_arf_r(df_r,str(output_path),cat_columns,result.name)
 
                     with localconverter(ro.default_converter + pandas2ri.converter):
                         synthetic_data = ro.conversion.rpy2py(synthetic_df_r)
@@ -80,7 +79,7 @@ def evaluate_models(real_data,data_type,data_path,cat_columns,target_type='class
                     with localconverter(ro.default_converter + pandas2ri.converter):
                         df_r = ro.conversion.py2rpy(real_data)
 
-                    synthetic_df_r = load_cart_r(df_r,str(output_path),str(result))
+                    synthetic_df_r = load_cart_r(df_r,str(output_path),cat_columns,str(result))
                     
                     with localconverter(ro.default_converter + pandas2ri.converter):
                         synthetic_data = ro.conversion.rpy2py(synthetic_df_r)
@@ -142,11 +141,12 @@ def select_best_model(data_type,results_df):
 
 
 if args.dataset == 'bank':
-    path_orig_data = data_folder + '/BANK_CUSTOMER_CHURN/BANK_TRAIN_SET.csv'
-    data_path = data_folder + '/BANK_CUSTOMER_CHURN'
+    path_orig_data = data_folder + '/BANK_MARKETING/BANK_TRAIN_SET.csv'
+    data_path = data_folder + '/BANK_MARKETING'
+    cat_vars = ['job','marital','education','default','housing','loan','contact','month','day_of_week','poutcome','y']
     if args.metric_type == 'tabsyndex':
         real_data = pd.read_csv(path_orig_data,index_col=0)
-        performance_df = evaluate_models(real_data,'bank',data_path,'class')
+        performance_df = evaluate_models(real_data,'bank',data_path,cat_vars,'class')
         select_best_model('bank', performance_df)
     if args.metric_type == 'statistical':
         print('c')
@@ -154,7 +154,7 @@ if args.dataset == 'bank':
 if args.dataset == 'heart':
     path_orig_data = data_folder + '/HEART_ATTACK_PREDICTION/HEART_TRAIN_SET.csv'
     data_path = data_folder + '/HEART_ATTACK_PREDICTION/'
-    cat_vars = ['sex','thal','target']
+    cat_vars = ['sex','cp','fbs','restecg','exang','slope','thal','target']
     if args.metric_type == 'tabsyndex':
         real_data = pd.read_csv(path_orig_data,index_col=0)
         performance_df = evaluate_models(real_data,'heart',data_path,cat_vars,'class')
@@ -168,9 +168,10 @@ if args.dataset == 'heart':
 if args.dataset == 'adult':
     path_orig_data = data_folder + '/ADULT_CENSUS_INCOME/ADULT_TRAIN_SET.csv'
     data_path = data_folder + '/ADULT_CENSUS_INCOME'
+    cat_vars = ['workclass','education','marital-status','occupation','relationship','race','sex','native-country','class'] 
     if args.metric_type == 'tabsyndex':
         real_data = pd.read_csv(path_orig_data,index_col=0)
-        performance_df = evaluate_models(real_data,'heart',data_path,'regr')
+        performance_df = evaluate_models(real_data,'heart',data_path,cat_vars,'regr')
         select_best_model('heart', performance_df)
     if args.metric_type == 'statistical':
         print('c')
@@ -178,9 +179,10 @@ if args.dataset == 'adult':
 if args.dataset == 'wine':
     path_orig_data = data_folder + '/WINE_QUALITY/WINE_TRAIN_SET.csv'
     data_path = data_folder + '/WINE_QUALITY'
+    cat_vars = ['quality']  
     if args.metric_type == 'tabsyndex':
         real_data = pd.read_csv(path_orig_data,index_col=0)
-        performance_df = evaluate_models('wine',real_data,data_path,'class')
+        performance_df = evaluate_models('wine',real_data,data_path,cat_vars,'class')
         select_best_model('wine', performance_df)
     if args.metric_type == 'statistical':
         print('c')
