@@ -6,9 +6,10 @@ load_cart <- function(df,output_path,cat_columns,saved_model){
   
   synth <- cart$syn
   
-  for(col in cat_columns){
-    synth$col <- as.character(synth$col)
+  for(i in colnames(df)){
+    if(i %in% cat_columns){
+    synth[,i] <- as.character(synth[,i)
+    }
   }
-  
   synth
 }
