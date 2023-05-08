@@ -7,7 +7,7 @@ import random
 from sdmetrics.single_table import NewRowSynthesis
 import os
 
-os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2' #adjust to version of LISA
+os.environ['R_HOME'] = './sw/arch/Debian10/EB_production/2022/software/R/4.2.1-foss-2022a/bin/R' 
 
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri
