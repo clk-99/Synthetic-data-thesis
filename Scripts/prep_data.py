@@ -22,7 +22,7 @@ def main(data_path,dataset,cat_columns):
     df = load_dataset(dataset,data_path,cat_columns)
     df, target = dataframe_investigation(df, dataset)
     target_df = df[target]
-    features_df = df[cat_vars+num_vars]
+    features_df = df[cat_columns+num_vars]
     if dataset == 'wine':
         target_df = feature_engineering(target_df,None,dataset,None)
         X_train, X_test, y_train, y_test = train_test_split(features_df,target_df,test_size=0.20,random_state=12) #voeg nog stratify parameter toe
