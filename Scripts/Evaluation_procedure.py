@@ -33,10 +33,10 @@ parser.add_argument("dataset", help='Name of dataset to convert filetype',type=s
 parser.add_argument("metric_type", help="Evaluation metric to compute", type=str, default='tabsyndex')
 
 args = parser.parse_args()
-data_folder = '../Data' 
+data_folder = './Data' 
 
 def evaluate_models(real_data,data_type,data_path,cat_columns,target_type='class'):
-    models = ['ARF','CART'] #,'CTGAN','TVAE']
+    models = ['ARF','CART','CTGAN','TVAE']
     results = pd.DataFrame(columns=['Model_type','Dataset','TabSynDex_score','Basic_score','Correlation_score','Machine_learning_efficiency_score','Support_coverage_score','PMSE_score'])
     for m in models:
         model_results = data_path + m 
