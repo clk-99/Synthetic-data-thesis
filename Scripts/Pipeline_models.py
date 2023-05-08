@@ -29,7 +29,7 @@ parser.add_argument("dataset", help='Name of dataset',type=str,default='heart')
 parser.add_argument("model", help='Model to generate synthetic data',type=str,default='ctgan')
 
 args = parser.parse_args()
-data_folder = '../Data'
+data_folder = './Data'
 #toevoegen van kleine data analyse
 
 if args.dataset == 'bank':
