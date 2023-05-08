@@ -19,7 +19,7 @@ import os
 data_folder = '../Data'
 
 def main(data_path,dataset,cat_columns):
-    df = load_dataset(dataset,data_path,cat_columns)
+    df, num_vars = load_dataset(dataset,data_path,cat_columns)
     df, target = dataframe_investigation(df, dataset)
     target_df = df[target]
     features_df = df[cat_columns+num_vars]
@@ -64,8 +64,10 @@ def load_dataset(data_type,data_path,cat_columns):
     print('Size of dataset equals: ',df.shape)
     print('\n First five rows of dataset \n',df.head())
     print('\n Info about nan values: \n',df.info())
+    
+    num_cols = df.select_dtypes(exclude='object').columns.to_list()
 
-    return df
+    return df, num_vars
 
 def check_null_values(dataframe):
     columns = dataframe.columns[dataframe.isnull().any()].to_list()
