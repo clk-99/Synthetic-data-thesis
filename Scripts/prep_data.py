@@ -126,8 +126,8 @@ def feature_engineering(train_df=None, test_df=None, dataset='wine', cat_vars=No
     #add feature scaling?
     if dataset == 'wine':
         #label encoding for target variable
-        feature = 'quality'
-        train_df[feature].replace(train_df[feature].unique(),[i for i in range(train_df[feature].nunique())],inplace=True)
+        #feature = 'quality'
+        train_df.replace(train_df.unique(),[i for i in range(train_df.nunique())],inplace=True)
         return train_df
 
     
