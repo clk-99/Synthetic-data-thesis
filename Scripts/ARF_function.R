@@ -1,5 +1,4 @@
 library(arf)
-library(tidyr)
 
 run_arf <- function(df,nr_trees,cat_columns,name){
 
