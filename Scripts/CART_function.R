@@ -1,6 +1,5 @@
 library(synthpop)
-library(tidyverse)
-library(Gmisc)
+
 
 run_cart <- function(df,model_name,cat_columns){
 
