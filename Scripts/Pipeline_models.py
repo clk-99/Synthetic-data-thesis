@@ -56,7 +56,7 @@ if args.dataset == 'bank':
         print('d')
 
 if args.dataset == 'heart':
-    data_path = data_folder + '/HEART_ATTACK_PREDICTION/heart.csv'
+    data_folder + '/HEART_ATTACK_PREDICTION/processed.cleveland.data'
     cat_columns =  ['sex','cp','fbs','restecg','exang','slope','thal','target']
     real_train_data, target = prep_data.main(data_path,args.dataset,cat_columns) #new adjustment of code!
     metadata = SingleTableMetadata()

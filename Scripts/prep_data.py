@@ -19,7 +19,7 @@ import os
 data_folder = '../Data'
 
 def main(data_path,dataset,cat_columns):
-    df = load_dataset(data_path,cat_columns)
+    df = load_dataset(dataset,data_path,cat_columns)
     df, target = dataframe_investigation(df, dataset)
     target_df = df[target]
     features_df = df[cat_vars+num_vars]
@@ -55,9 +55,12 @@ def main(data_path,dataset,cat_columns):
   
 
 
-def load_dataset(data_path,cat_columns):
+def load_dataset(data_type,data_path,cat_columns):
     file = (data_path)
-    df = pd.read_csv(file,encoding='utf8',sep=',',dtype={col:'object' for col in cat_columns})
+    if data_type == 'heart':
+        df = pd.read_csv(heart_data,sep=',',header=0,names=['age','sex','cp','trestbps','chol','fbs','restecg','thalach','exang','oldpeak','slope','ca','thal','num'],dtype={col:'object' for col in cat_columns})
+    else:
+        df = pd.read_csv(file,encoding='utf8',sep=',',dtype={col:'object' for col in cat_columns})
     print('Size of dataset equals: ',df.shape)
     print('\n First five rows of dataset \n',df.head())
     print('\n Info about nan values: \n',df.info())
@@ -89,15 +92,15 @@ def dataframe_investigation(df,dataset):
         return df,target_var
 
     elif dataset == 'heart':
-        target_var = 'target'
+        target_var = 'num'
         df_plot = df.copy()
         di = {'1': 'Male', '0': 'Female'}
-        dj = {'0':'normal','1':'fixed defect','2':'reversable defect','3':'Unknown'}
+        dj = {'3':'normal','6':'fixed defect','7':'reversable defect'}
         dk = {'0':'Less chance of Heart Attack','1':'High Chance of Heart Attack'}
 
         df_plot['sex'].replace(di,inplace=True)
         df_plot['thal'].replace(dj,inplace=True)
-        df_plot['target'].replace(dk,inplace=True)
+        df_plot['num'].replace(dk,inplace=True)
        
         return df_plot,target_var
     
