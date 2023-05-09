@@ -7,7 +7,7 @@ import random
 from sdmetrics.single_table import NewRowSynthesis
 import os
 
-os.environ['R_HOME'] = '/sw/arch/Debian10/EB_production/2022/software/R/4.2.1-foss-2022a' 
+os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2' #adjust to version of LISA
 
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri
@@ -15,7 +15,7 @@ from rpy2.robjects.conversion import localconverter
 
 from rpy2.robjects.packages import importr
 
-base = importr('base')
+#base = importr('base')
 
 r = ro.r
 r['source']('CART_function.R')
@@ -71,7 +71,7 @@ def tune_performance_tvae(data_type,data,metadata,performance_tvae,output_path):
     while i<n:
         epochs = random.randrange(100,501,100)
         batch_size = random.randrange(100,501,100)
-        l2scale = np.random.choice(np.linspace(start=0.01,stop=0.05,num=10000),size=1)[0]
+        l2scale = np.round(np.random.choice(np.linspace(start=0.01,stop=0.05,num=10000),size=1)[0],3)
         nr_layers = np.random.randint(low=1,high=3,size=1)[0]
 
         dimensions = random.sample([4,8,16,32,64,128,256],3)
@@ -89,7 +89,7 @@ def tune_performance_tvae(data_type,data,metadata,performance_tvae,output_path):
                 compress_dims = dimensions[0]
                 decompress_dims = dimensions[1]
                 embedding_dim = dimensions[2]
-                l2scale = np.random.choice(np.linspace(start=0.01,stop=0.05,num=10000),size=1)[0]
+                l2scale = np.round(np.random.choice(np.linspace(start=0.01,stop=0.05,num=10000),size=1)[0],3)
                 combination = str(epochs)+'_'+str(batch_size)+'_'+str(compress_dims)+'_'+str(decompress_dims)+'_'+str(embedding_dim)+'_'+str(l2scale) 
                 performance_df.loc[i,'Combination_parameters'] = combination   
             else:

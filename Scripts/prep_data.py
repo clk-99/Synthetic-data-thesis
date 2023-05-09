@@ -21,9 +21,7 @@ data_folder = '../Data'
 def main(data_path,dataset,cat_columns,path_to_save):
     datasets = ['bank','adult']
     df, num_vars = load_dataset(dataset,data_path,cat_columns)
-    print(num_vars)
     df, target = dataframe_investigation(df, dataset)
-    print(df.head())
     target_df = df[target]
     if cat_columns is not None:
         features_df = df[cat_columns+num_vars]
@@ -32,18 +30,15 @@ def main(data_path,dataset,cat_columns,path_to_save):
 
     X_train, X_test, y_train, y_test = train_test_split(features_df,target_df,test_size=0.20,random_state=12) #voeg nog stratify parameter toe
 
-    print(X_train.head())
     if dataset in [datasets]:
         X_train, X_test = feature_engineering(X_train, X_test, dataset, cat_vars=cat_columns)
     
-    print(X_train.head())
     real_train_data = pd.concat([X_train.reset_index(drop=True),
                                     y_train.reset_index(drop=True)],axis=1)
-    print(real_train_data.head())
-    print(real_train_data.dtypes)
-    real_train_data.to_csv(data_folder + path_to_save,index_label='Index')
     
-    return real_train_data, target  
+    real_train_data.to_csv(data_folder + path_to_save,index_label='Index')
+    cat_columns.append(target)
+    return real_train_data, cat_columns  
 
 
 def load_dataset(data_type,data_path,cat_columns):
@@ -68,10 +63,9 @@ def load_dataset(data_type,data_path,cat_columns):
 
 def check_null_values(dataframe):
     columns = dataframe.columns[dataframe.isnull().any()].to_list()
-
     if len(columns) > 0:
         for i in columns:
-            mode_var = dataframe[i].mode()
+            mode_var = dataframe[i].mode()[0]
             dataframe[i].fillna(mode_var, inplace=True) #missing values are filled using rolling mode method
     else:
         print("Data does not have missing values.")
@@ -114,7 +108,7 @@ def dataframe_investigation(df,dataset):
     
     else: #wine
         target_var = 'quality'
-        df[target_var].replace(df[target_var].unique(),[i for i in range(df[target_var].nunique())],inplace=True)
+        #df[target_var].replace(df[target_var].unique(),[i for i in range(df[target_var].nunique())],inplace=True)
 
         #impute missing values with mode
         df = check_null_values(df)

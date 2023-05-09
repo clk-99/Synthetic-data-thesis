@@ -35,8 +35,7 @@ data_folder = '../Data'
 if args.dataset == 'bank':
     data_path = data_folder + '/BANK_MARKETING/bank-additional-full.csv'
     cat_columns = ['job','marital','education','default','housing','loan','contact','month','day_of_week','poutcome'] #,'y']
-    real_train_data, target = prep_data.main(data_path,args.dataset,cat_columns,'/BANK_MARKETING/BANK_TRAIN_SET.csv')
-    cat_columns.append('y')
+    real_train_data, cat_columns = prep_data.main(data_path,args.dataset,cat_columns,'/BANK_MARKETING/BANK_TRAIN_SET.csv')
     for col in cat_columns:
         real_train_data[col] = pd.Categorical(real_train_data[col])
     print(real_train_data.dtypes)
@@ -62,7 +61,7 @@ if args.dataset == 'bank':
 if args.dataset == 'heart':
     data_path = data_folder + '/HEART_ATTACK_PREDICTION/processed.cleveland.data'
     cat_columns =  ['sex','cp','fbs','restecg','exang','slope','thal'] #,'target']
-    real_train_data, target = prep_data.main(data_path,args.dataset,cat_columns,'/HEART_ATTACK_PREDICTION/HEART_TRAIN_SET.csv') #new adjustment of code!
+    real_train_data, cat_columns = prep_data.main(data_path,args.dataset,cat_columns,'/HEART_ATTACK_PREDICTION/HEART_TRAIN_SET.csv') #including target variable
     metadata = SingleTableMetadata()
     metadata.detect_from_dataframe(data=real_train_data)
     table_metadata = metadata.to_dict()
@@ -85,8 +84,7 @@ if args.dataset == 'heart':
 if args.dataset == 'adult':
     data_path = data_folder + '/ADULT_CENSUS_INCOME/adult.csv'
     cat_columns = ['workclass','education','marital.status','occupation','relationship','race','sex','native.country'] #,'income'] 
-    real_train_data, target = prep_data.main(data_path,args.dataset,cat_columns,'/ADULT_CENSUS_INCOME/ADULT_TRAIN_SET.csv')
-    cat_columns.append('income')
+    real_train_data, cat_columns = prep_data.main(data_path,args.dataset,cat_columns,'/ADULT_CENSUS_INCOME/ADULT_TRAIN_SET.csv')
     for col in cat_columns:
         real_train_data[col] = pd.Categorical(real_train_data[col])
     metadata = SingleTableMetadata()
@@ -111,8 +109,9 @@ if args.dataset == 'adult':
 
 if args.dataset == 'wine':
     data_path = data_folder + '/WINE_QUALITY/wine.csv' 
-    target = ['quality'] 
-    real_train_data, target = prep_data.main(data_path,args.dataset,None,'/WINE_QUALITY/WINE_TRAIN_SET.csv')
+    cat_columns = ['free sulfur dioxide']
+    real_train_data, cat_columns = prep_data.main(data_path,args.dataset,cat_columns,'/WINE_QUALITY/WINE_TRAIN_SET.csv')
+    print(real_train_data.dtypes)
     metadata = SingleTableMetadata()
     metadata.detect_from_dataframe(data=real_train_data)
     table_metadata = metadata.to_dict()
@@ -124,10 +123,10 @@ if args.dataset == 'wine':
         synthetic_tvae = pm.tune_performance_tvae('wine',real_train_data,metadata,None,output_path)
     if args.model == 'arf':
         output_path = data_folder + '/WINE_QUALITY/ARF/'
-        synthetic_arf = pm.tune_performance_arf('wine',real_train_data,str(output_path),target)
+        synthetic_arf = pm.tune_performance_arf('wine',real_train_data,str(output_path),cat_columns)
     if args.model == 'cart':
         output_path = data_folder + '/WINE_QUALITY/CART/'
-        synthetic_cart = pm.tune_performance_cart('wine',real_train_data,str(output_path),target)
+        synthetic_cart = pm.tune_performance_cart('wine',real_train_data,str(output_path),cat_columns)
     if args.model == 'tabddpm':
         output_path = data_folder + '/WINE_QUALITY/TABDDPM'
         print('d')
