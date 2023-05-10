@@ -17,7 +17,9 @@ def tabsyndex(real_data, fake_data, cat_cols, target_col=-1, target_type='regr')
 
   def mape (vector_a, vector_b):
     return abs(vector_a-vector_b)/abs(vector_a+1e-6)
-    
+
+  print(real_data.dtypes)
+  print(fake_data.dtypes) 
   scaler = MinMaxScaler()
   real_data_norm = scaler.fit_transform(real_data)
   real_data_norm = pd.DataFrame(real_data_norm, columns=real_data.columns)
@@ -26,8 +28,8 @@ def tabsyndex(real_data, fake_data, cat_cols, target_col=-1, target_type='regr')
   
   def basic_stats(cat_cols):
     #aanpassen op alleen numerieke kolommen van dataset
-    real_df = real_data.drop(real_data.columns[cat_cols], axis=1)
-    fake_df = fake_data.drop(fake_data.columns[cat_cols], axis=1)
+    real_df = real_data.drop(cat_cols, axis=1)
+    fake_df = fake_data.drop(cat_cols, axis=1)
 
     real_mean = np.mean(real_df, axis=0)
     fake_mean = np.mean(fake_df, axis=0)
@@ -128,8 +130,13 @@ def tabsyndex(real_data, fake_data, cat_cols, target_col=-1, target_type='regr')
     return score
 
   def pmse():
+    #data = pd.concat([real_data_norm.reset_index(drop=True),
+                                   # fake_data_norm.reset_index(drop=True)],axis=1)
+    
     data = real_data_norm.append(fake_data_norm, ignore_index=True)
     data['target'] = [0]*len(real_data)+[1]*len(fake_data)
+    print(data.head())
+
     data = data.sample(frac=1)
     x = data.drop('target', axis=1)
     y = data['target']
@@ -164,10 +171,11 @@ def tabsyndex(real_data, fake_data, cat_cols, target_col=-1, target_type='regr')
         real_col_num = real_data[col].value_counts()
         fake_col_num = fake_data[col].value_counts()
         
+        
         for i in real_col_num.index:
-          if real_col_num.loc[i] != 0:
+          if real_col_num.iloc[i] != 0:
             non_zero_cat += 1
-            col_sup += min((fake_col_num.loc[i]/real_col_num.loc[i])*scaling_factor,2)
+            col_sup += min((fake_col_num.iloc[i]/real_col_num.iloc[i])*scaling_factor,2)
         
         col_sup = col_sup/non_zero_cat
         if(col_sup>1):
@@ -181,9 +189,9 @@ def tabsyndex(real_data, fake_data, cat_cols, target_col=-1, target_type='regr')
                               labels=range(num_bins)).value_counts()
 
         for i in real_col_num.index:
-          if real_col_num.loc[i] != 0:
+          if real_col_num.iloc[i] != 0:
             non_zero_cat += 1
-            col_sup += min((fake_col_num.loc[i]/real_col_num.loc[i])*scaling_factor, 2)
+            col_sup += min((fake_col_num.iloc[i]/real_col_num.iloc[i])*scaling_factor, 2)
         
         col_sup = col_sup/non_zero_cat
         if(col_sup>1):

@@ -11,7 +11,6 @@ run_arf <- function(df,nr_trees,cat_columns,name){
        
     }
   }
-  
 
   arf <- adversarial_rf(df,verbose=TRUE,num_trees=nr_trees)
   params <- forde(arf,df)

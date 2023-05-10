@@ -1,6 +1,7 @@
 library(arf)
 
 load_arf <- function(df,output_path,cat_vars,saved_model){
+  getwd()
   setwd(output_path)
  
   params <- readRDS(saved_model)
@@ -9,7 +10,7 @@ load_arf <- function(df,output_path,cat_vars,saved_model){
     
   for(i in colnames(df)){
     if(i %in% cat_vars){
-    synth[,i] <- as.character(synth[,i)
+    synth[,i] <- as.character(synth[,i])
     }
   }
   synth

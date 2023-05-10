@@ -33,109 +33,65 @@ parser.add_argument("dataset", help='Name of dataset to convert filetype',type=s
 parser.add_argument("metric_type", help="Evaluation metric to compute", type=str, default='tabsyndex')
 
 args = parser.parse_args()
-data_folder = './Data' 
+data_folder = '../Data' 
 
 def evaluate_models(real_data,data_type,data_path,cat_columns,target_type='class'):
-    models = ['ARF','CART','CTGAN','TVAE']
+    models = ['CART','ARF','CTGAN','TVAE']
     results = pd.DataFrame(columns=['Model_type','Dataset','TabSynDex_score','Basic_score','Correlation_score','Machine_learning_efficiency_score','Support_coverage_score','PMSE_score'])
     for m in models:
         model_results = data_path + m 
         i = 0
-        if m == 'ARF':
-            with os.scandir(model_results) as it:
-                for result in it:
-                    print(result.name)
-                    print(output_path)
-                    output_path = model_results 
-
-                    #converting data into r object for passing into r function
+        with os.scandir(model_results) as it:
+            for result in it:
+                print(result.name)
+                output_path = model_results
+                os.chdir(output_path)
+                print(output_path)
+                if m == 'ARF':
                     with localconverter(ro.default_converter + pandas2ri.converter):
                         df_r = ro.conversion.py2rpy(real_data)
 
-                    synthetic_df_r = load_arf_r(df_r,str(output_path),cat_columns,result.name)
+                    synthetic_df_r = load_arf_r(df_r,str(output_path),cat_columns,str(result.name))
 
                     with localconverter(ro.default_converter + pandas2ri.converter):
                         synthetic_data = ro.conversion.rpy2py(synthetic_df_r)
-                    
-                    print(real_data.dtypes)
-                    print(synthetic_data.dtypes)
-                    scores = ts.tabsyndex(real_data, synthetic_data, cat_cols=cat_columns,target_type=target_type)
-                    results.loc[i,'Model_type'] = result.name
-                    results.loc[i,'Dataset'] = data_type
-                    results.loc[i,'TabSynDex_score'] = scores['score']
-                    results.loc[i,'Basic_score'] = scores['basic_score']
-                    results.loc[i,'Correlation_score'] = scores['corr_score']
-                    results.loc[i,'Machine_learning_efficiency_score'] = scores['ml_score']
-                    results.loc[i,'Support_coverage_score'] = scores['sup_score']
-                    results.loc[i,'PMSE_score'] = scores['pmse_score']
 
-                    i+=1
-
-        elif m == 'CART':
-            with os.scandir(model_results) as it:
-                for result in it:
-                    print(result.name)
+                elif m == 'CART':
 
                     with localconverter(ro.default_converter + pandas2ri.converter):
                         df_r = ro.conversion.py2rpy(real_data)
 
-                    synthetic_df_r = load_cart_r(df_r,str(output_path),cat_columns,str(result))
+                    synthetic_df_r = load_cart_r(df_r,str(output_path),cat_columns,str(result.name))
                     
                     with localconverter(ro.default_converter + pandas2ri.converter):
                         synthetic_data = ro.conversion.rpy2py(synthetic_df_r)
                     
-                    scores = ts.tabsyndex(real_data, synthetic_data, cat_cols=cat_columns,target_type=target_type)
-                    results.loc[i,'Model_type'] = result
-                    results.loc[i,'Dataset'] = data_type
-                    results.loc[i,'TabSynDex_score'] = scores['score']
-                    results.loc[i,'Basic_score'] = scores['basic_score']
-                    results.loc[i,'Correlation_score'] = scores['corr_score']
-                    results.loc[i,'Machine_learning_efficiency_score'] = scores['ml_score']
-                    results.loc[i,'Support_coverage_score'] = scores['sup_score']
-                    results.loc[i,'PMSE_score'] = scores['pmse_score']
-
-                    i+=1
-
-        elif m == 'CTGAN': 
-            with os.scandir(model_results) as it:
-                for result in it:
-                    print(result)
+                elif m == 'CTGAN': 
                     #reload ctgan model
-                    ctgan_model = CTGANSynthesizer.load(filepath=result)
+                    ctgan_model = CTGANSynthesizer.load(filepath=result.name)
                     synthetic_data = ctgan_model.sample(num_rows=len(real_data))
-                    scores = ts.tabsyndex(real_data, synthetic_data, cat_cols=cat_columns,target_type=target_type)
-                    results.loc[i,'Model_type'] = result
-                    results.loc[i,'Dataset'] = data_type
-                    results.loc[i,'TabSynDex_score'] = scores['score']
-                    results.loc[i,'Basic_score'] = scores['basic_score']
-                    results.loc[i,'Correlation_score'] = scores['corr_score']
-                    results.loc[i,'Machine_learning_efficiency_score'] = scores['ml_score']
-                    results.loc[i,'Support_coverage_score'] = scores['sup_score']
-                    results.loc[i,'PMSE_score'] = scores['pmse_score']
-                    i+=1
-        
-        elif m == 'TVAE': 
-            with os.scandir(model_results) as it:
-                for result in it:
-                    print(result)
-                    #reload tvae model
-                    tvae_model = TVAESynthesizer.load(filepath=result)
+    
+                elif m == 'TVAE': 
+                    tvae_model = TVAESynthesizer.load(filepath=result.name)
                     synthetic_data = tvae_model.sample(num_rows=len(real_data))
-                    scores = ts.tabsyndex(real_data, synthetic_data, cat_cols=cat_columns,target_type=target_type)
-                    results.loc[i,'Model_type'] = result
-                    results.loc[i,'Dataset'] = data_type
-                    results.loc[i,'TabSynDex_score'] = scores['score']
-                    results.loc[i,'Basic_score'] = scores['basic_score']
-                    results.loc[i,'Correlation_score'] = scores['corr_score']
-                    results.loc[i,'Machine_learning_efficiency_score'] = scores['ml_score']
-                    results.loc[i,'Support_coverage_score'] = scores['sup_score']
-                    results.loc[i,'PMSE_score'] = scores['pmse_score']
-                    i+=1
+                
+                scores = ts.tabsyndex(real_data, synthetic_data, cat_cols=cat_columns,target_type=target_type)
+                results.loc[i,'Model_type'] = result.name
+                results.loc[i,'Dataset'] = data_type
+                results.loc[i,'TabSynDex_score'] = scores['score']
+                results.loc[i,'Basic_score'] = scores['basic_score']
+                results.loc[i,'Correlation_score'] = scores['corr_score']
+                results.loc[i,'Machine_learning_efficiency_score'] = scores['ml_score']
+                results.loc[i,'Support_coverage_score'] = scores['sup_score']
+                results.loc[i,'PMSE_score'] = scores['pmse_score']
+                i+=1
+                
     return results
 
 def select_best_model(data_type,results_df):
-    print('The best performing model for dataset '+data_type+'equals... \n')
+    print('The best performing model for dataset '+data_type+' equals... \n')
     models_df = results_df.set_index('Model_type')
+    print(models_df)
     best_model = models_df['TabSynDex_score'].idxmax()
     print('Model: '+str(best_model))
 
@@ -151,14 +107,14 @@ if args.dataset == 'bank':
     if args.metric_type == 'statistical':
         print('c')
 
-if args.dataset == 'heart':
-    path_orig_data = data_folder + '/HEART_ATTACK_PREDICTION/HEART_TRAIN_SET.csv'
-    data_path = data_folder + '/HEART_ATTACK_PREDICTION/'
-    cat_vars = ['sex','cp','fbs','restecg','exang','slope','thal','target']
+if args.dataset == 'metro':
+    path_orig_data = data_folder + '/TRAFFIC_VOLUME/TRAFFIC_VOLUME_TRAIN_SET.csv'
+    data_path = data_folder + '/TRAFFIC_VOLUME/'
+    cat_vars =  ['holiday','weather_main','weather_description'] 
     if args.metric_type == 'tabsyndex':
         real_data = pd.read_csv(path_orig_data,index_col=0)
-        performance_df = evaluate_models(real_data,'heart',data_path,cat_vars,'class')
-        select_best_model('heart', performance_df)
+        performance_df = evaluate_models(real_data,'metro',data_path,cat_vars,'regr')
+        select_best_model('metro', performance_df)
     if args.metric_type == 'statistical':
         print('c')
         #use statistical tests to compute scores
