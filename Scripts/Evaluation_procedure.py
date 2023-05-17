@@ -6,6 +6,8 @@ import torch
 import sklearn
 import argparse
 import tabsyndex as ts
+import stats 
+import visuals as vs
 from pathlib import Path
 from sdv.single_table import CTGANSynthesizer, TVAESynthesizer
 
@@ -106,6 +108,8 @@ if args.dataset == 'bank':
         select_best_model('bank', performance_df)
     if args.metric_type == 'statistical':
         print('c')
+    if args.metric_type == 'outlier':
+        print('d')
 
 if args.dataset == 'metro':
     path_orig_data = data_folder + '/TRAFFIC_VOLUME/TRAFFIC_VOLUME_TRAIN_SET.csv'
@@ -117,6 +121,8 @@ if args.dataset == 'metro':
         select_best_model('metro', performance_df)
     if args.metric_type == 'statistical':
         print('c')
+    if args.metric_type == 'outlier':
+        print('d')
         #use statistical tests to compute scores
         #from here other metrics can be computed
 
@@ -131,6 +137,8 @@ if args.dataset == 'adult':
         select_best_model('heart', performance_df)
     if args.metric_type == 'statistical':
         print('c')
+    if args.metric_type == 'outlier':
+        print('d')
 
 if args.dataset == 'wine':
     path_orig_data = data_folder + '/WINE_QUALITY/WINE_TRAIN_SET.csv'
@@ -142,4 +150,6 @@ if args.dataset == 'wine':
         select_best_model('wine', performance_df)
     if args.metric_type == 'statistical':
         print('c')
+    if args.metric_type == 'outlier':
+        print('d')
 

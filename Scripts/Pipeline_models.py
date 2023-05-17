@@ -25,12 +25,13 @@ from sklearn.model_selection import train_test_split
 #input from user to select datasets and model
 parser = argparse.ArgumentParser()
 parser = argparse.ArgumentParser(description='Evaluation procedure to select optimal set of hyperparameters and model')
-parser.add_argument("dataset", help='Name of dataset',type=str,default='heart')
+parser.add_argument("dataset", help='Name of dataset',type=str,default='bank')
 parser.add_argument("model", help='Model to generate synthetic data',type=str,default='ctgan')
+parser.add_argument("nr_combinations",help='# of trials for various hyperparameter settings',type=int,default=1)
 
 args = parser.parse_args()
+trials = args.nr_combinations
 data_folder = '../Data'
-#toevoegen van kleine data analyse
 
 if args.dataset == 'bank':
     data_path = data_folder + '/BANK_MARKETING/bank-additional-full.csv'
@@ -39,13 +40,13 @@ if args.dataset == 'bank':
     table_metadata = SingleTableMetadata.load_from_dict(table_dict)
     if args.model == 'ctgan':
         output_path = data_folder + '/BANK_MARKETING/CTGAN'
-        synthetic_ctgan = pm.tune_performance_ctgan('bank',real_train_data,table_metadata,None,output_path)
+        synthetic_ctgan = pm.tune_performance_ctgan('bank',real_train_data,table_metadata,None,output_path,trials)
     if args.model == 'tvae':
         output_path = data_folder + '/BANK_MARKETING/TVAE'
-        synthetic_tvae = pm.tune_performance_tvae('bank',real_train_data,table_metadata,None,output_path)
+        synthetic_tvae = pm.tune_performance_tvae('bank',real_train_data,table_metadata,None,output_path,trials)
     if args.model == 'arf':
         output_path = data_folder + '/BANK_MARKETING/ARF/'
-        synthetic_arf = pm.tune_performance_arf('bank',real_train_data,str(output_path),cat_columns)
+        synthetic_arf = pm.tune_performance_arf('bank',real_train_data,str(output_path),cat_columns,trials)
     if args.model == 'cart':
         output_path = data_folder + '/BANK_MARKETING/CART/'
         synthetic_cart = pm.tune_performance_cart('bank',real_train_data,str(output_path),cat_columns)
@@ -61,13 +62,13 @@ if args.dataset == 'metro':
     print(table_metadata)
     if args.model == 'ctgan':
        output_path = data_folder + '/TRAFFIC_VOLUME/CTGAN'
-       synthetic_ctgan = pm.tune_performance_ctgan('metro',real_train_data,table_metadata,None,output_path)
+       synthetic_ctgan = pm.tune_performance_ctgan('metro',real_train_data,table_metadata,None,output_path,trials)
     if args.model == 'tvae':
         output_path = data_folder + '/TRAFFIC_VOLUME/TVAE'
-        synthetic_tvae = pm.tune_performance_tvae('metro',real_train_data,table_metadata,None,output_path)
+        synthetic_tvae = pm.tune_performance_tvae('metro',real_train_data,table_metadata,None,output_path,trials)
     if args.model == 'arf':
         output_path = data_folder + '/TRAFFIC_VOLUME/ARF/'
-        synthetic_arf = pm.tune_performance_arf('metro',real_train_data,str(output_path),cat_columns)
+        synthetic_arf = pm.tune_performance_arf('metro',real_train_data,str(output_path),cat_columns,trials)
     if args.model == 'cart':
         output_path = data_folder + '/TRAFFIC_VOLUME/CART/'
         synthetic_cart = pm.tune_performance_cart('metro',real_train_data,str(output_path),cat_columns)
@@ -82,13 +83,13 @@ if args.dataset == 'adult':
     table_metadata = SingleTableMetadata.load_from_dict(table_dict)
     if args.model == 'ctgan':
        output_path = data_folder + '/ADULT_CENSUS_INCOME/CTGAN'
-       synthetic_ctgan = pm.tune_performance_ctgan('adult',real_train_data,table_metadata,None,output_path)
+       synthetic_ctgan = pm.tune_performance_ctgan('adult',real_train_data,table_metadata,None,output_path,trials)
     if args.model == 'tvae':
         output_path = data_folder + '/ADULT_CENSUS_INCOME/TVAE'
-        synthetic_tvae = pm.tune_performance_tvae('adult',real_train_data,table_metadata,None,output_path)
+        synthetic_tvae = pm.tune_performance_tvae('adult',real_train_data,table_metadata,None,output_path,trials)
     if args.model == 'arf':
         output_path = data_folder + '/ADULT_CENSUS_INCOME/ARF/'
-        synthetic_arf = pm.tune_performance_arf('adult',real_train_data,str(output_path),cat_columns)
+        synthetic_arf = pm.tune_performance_arf('adult',real_train_data,str(output_path),cat_columns,trials)
     if args.model == 'cart':
         output_path = data_folder + '/ADULT_CENSUS_INCOME/CART/'
         synthetic_cart = pm.tune_performance_cart('adult',real_train_data,str(output_path),cat_columns)
@@ -103,13 +104,13 @@ if args.dataset == 'wine':
     table_metadata = SingleTableMetadata.load_from_dict(table_dict)
     if args.model == 'ctgan':
        output_path = data_folder + '/WINE_QUALITY/CTGAN'
-       synthetic_ctgan = pm.tune_performance_ctgan('wine',real_train_data,table_metadata,None,output_path)
+       synthetic_ctgan = pm.tune_performance_ctgan('wine',real_train_data,table_metadata,None,output_path,trials)
     if args.model == 'tvae':
         output_path = data_folder + '/WINE_QUALITY/TVAE'
-        synthetic_tvae = pm.tune_performance_tvae('wine',real_train_data,table_metadata,None,output_path)
+        synthetic_tvae = pm.tune_performance_tvae('wine',real_train_data,table_metadata,None,output_path,trials)
     if args.model == 'arf':
         output_path = data_folder + '/WINE_QUALITY/ARF/'
-        synthetic_arf = pm.tune_performance_arf('wine',real_train_data,str(output_path),cat_columns)
+        synthetic_arf = pm.tune_performance_arf('wine',real_train_data,str(output_path),cat_columns,trials)
     if args.model == 'cart':
         output_path = data_folder + '/WINE_QUALITY/CART/'
         synthetic_cart = pm.tune_performance_cart('wine',real_train_data,str(output_path),cat_columns)
