@@ -28,48 +28,18 @@ def choose_random(max_limit=100,modulo=10,value=10,size=1):
     y = np.arange(value, max_limit, value)
     return np.random.choice(y, size=size, replace=True)[0]
 
-def grid_search(param_grid, max_evals = 5):
-    """ Grid search algorithm (with limit on max evals) """
-
-    # Dataframe to store results
-    results = pd.DataFrame(columns = ['score', 'params', 'iteration'],
-                            index = list(range(max_evals)))
-    
-    keys, values = zip(*param_grid.items())
-
-    i = 0
-
-    for v in itertools.product(*values):
-
-        # Create a hyperparameter dictionary
-        hyperparameters = dict(zip(keys,v))
-
-        eval_results = objective(hyperparameters, i)
-
-        results.loc[i,:] = eval_results
-
-        i += 1
-
-        if i > max_evals:
-            break
-    
-    results.sort_values('score', ascending=False, inplace=True)
-    results.reset_index(inplace=True)
-
-    return results
-
-def tune_performance_tvae(data_type,data,metadata,performance_tvae,output_path): 
+def tune_performance_tvae(data_type,data,metadata,performance_tvae,output_path,nr_combinations): 
     if performance_tvae is None:
         performance_df = pd.DataFrame()
         i=0
-        n=1
+        n=nr_combinations
     else:
         performance_df = performance_tvae 
-        n=len(performance_df)+8
+        n=len(performance_df)+nr_combinations
         i=len(performance_df)
         #input is a csv file that is saved under 'performance_tvae' which contains dataframe with performance measures    
     while i<n:
-        epochs = random.randrange(100,501,100)
+        epochs = random.randrange(5,101,15) #random.randrange(100,501,100)
         batch_size = random.randrange(100,501,100)
         l2scale = np.round(np.random.choice(np.linspace(start=0.01,stop=0.05,num=10000),size=1)[0],3)
         nr_layers = np.random.randint(low=1,high=3,size=1)[0]
