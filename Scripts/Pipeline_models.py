@@ -21,7 +21,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import QuantileTransformer
 from sklearn.model_selection import train_test_split
 
-
 #input from user to select datasets and model
 parser = argparse.ArgumentParser()
 parser = argparse.ArgumentParser(description='Evaluation procedure to select optimal set of hyperparameters and model')
@@ -31,89 +30,43 @@ parser.add_argument("nr_combinations",help='# of trials for various hyperparamet
 
 args = parser.parse_args()
 trials = args.nr_combinations
+dataset = args.dataset
+model = args.model
 data_folder = '../Data'
+cat_columns_dict = {
+    "bank" : ['job','marital','education','default','housing','loan','contact','month','day_of_week','poutcome','y'],
+    "metro" : ['holiday','weather_main','weather_description'],
+    "adult": ['workclass','education','marital.status','occupation','relationship','race','sex','native.country','income'],
+    "covertype": ['Soil_type','Warea','Cover_Type']
+}
 
-if args.dataset == 'bank':
-    data_path = data_folder + '/BANK_MARKETING/bank-additional-full.csv'
-    cat_columns = ['job','marital','education','default','housing','loan','contact','month','day_of_week','poutcome','y'] 
-    real_train_data, table_dict = prep_data.main(data_path,args.dataset,cat_columns,'/BANK_MARKETING/BANK_TRAIN_SET.csv')
+if dataset:
+    if dataset == 'covertype': #due to the size limit
+        data_path = data_folder + '/' + dataset + '/' + dataset + '.zip'
+    else:
+        data_path = data_folder + '/' + dataset + '/' + dataset + '.csv' 
+
+    cat_columns = cat_columns_dict[dataset]
+    real_train_data, table_dict = prep_data.main(data_path,dataset,cat_columns)
     table_metadata = SingleTableMetadata.load_from_dict(table_dict)
     if args.model == 'ctgan':
-        output_path = data_folder + '/BANK_MARKETING/CTGAN'
-        synthetic_ctgan = pm.tune_performance_ctgan('bank',real_train_data,table_metadata,None,output_path,trials)
+        output_path = data_folder + '/' + dataset + '/CTGAN'
+        synthetic_ctgan = pm.tune_performance_ctgan(dataset,real_train_data,table_metadata,None,output_path,trials)
     if args.model == 'tvae':
-        output_path = data_folder + '/BANK_MARKETING/TVAE'
-        synthetic_tvae = pm.tune_performance_tvae('bank',real_train_data,table_metadata,None,output_path,trials)
+        output_path = data_folder + '/' + dataset + '/TVAE'
+        synthetic_tvae = pm.tune_performance_tvae(dataset,real_train_data,table_metadata,None,output_path,trials)
     if args.model == 'arf':
-        output_path = data_folder + '/BANK_MARKETING/ARF/'
-        synthetic_arf = pm.tune_performance_arf('bank',real_train_data,str(output_path),cat_columns,trials)
+        output_path = data_folder + '/' + dataset + '/ARF/'
+        synthetic_arf = pm.tune_performance_arf(dataset,real_train_data,str(output_path),cat_columns,trials)
     if args.model == 'cart':
-        output_path = data_folder + '/BANK_MARKETING/CART/'
-        synthetic_cart = pm.tune_performance_cart('bank',real_train_data,str(output_path),cat_columns)
+        output_path = data_folder + '/' + dataset + '/CART/'
+        synthetic_cart = pm.tune_performance_cart(dataset,real_train_data,str(output_path),cat_columns,trials)
     if args.model == 'tabddpm':
-        output_path = data_folder + '/BANK_MARKETING/TABDDPM'
+        output_path = data_folder + '/' + dataset + '/TABDDPM'
         print('d')
 
-if args.dataset == 'metro':
-    data_path = data_folder + '/TRAFFIC_VOLUME/Metro_Interstate_Traffic_Volume.csv'
-    cat_columns =  ['holiday','weather_main','weather_description'] 
-    real_train_data, table_dict = prep_data.main(data_path,args.dataset,cat_columns,'/TRAFFIC_VOLUME/TRAFFIC_VOLUME_TRAIN_SET.csv') #including target variable
-    table_metadata = SingleTableMetadata.load_from_dict(table_dict)
-    print(table_metadata)
-    if args.model == 'ctgan':
-       output_path = data_folder + '/TRAFFIC_VOLUME/CTGAN'
-       synthetic_ctgan = pm.tune_performance_ctgan('metro',real_train_data,table_metadata,None,output_path,trials)
-    if args.model == 'tvae':
-        output_path = data_folder + '/TRAFFIC_VOLUME/TVAE'
-        synthetic_tvae = pm.tune_performance_tvae('metro',real_train_data,table_metadata,None,output_path,trials)
-    if args.model == 'arf':
-        output_path = data_folder + '/TRAFFIC_VOLUME/ARF/'
-        synthetic_arf = pm.tune_performance_arf('metro',real_train_data,str(output_path),cat_columns,trials)
-    if args.model == 'cart':
-        output_path = data_folder + '/TRAFFIC_VOLUME/CART/'
-        synthetic_cart = pm.tune_performance_cart('metro',real_train_data,str(output_path),cat_columns)
-    if args.model == 'tabddpm':
-        output_path = data_folder + '/TRAFFIC_VOLUME/TABDDPM'
-        print('d')
 
-if args.dataset == 'adult':
-    data_path = data_folder + '/ADULT_CENSUS_INCOME/adult.csv'
-    cat_columns = ['workclass','education','marital.status','occupation','relationship','race','sex','native.country','income'] 
-    real_train_data, table_dict = prep_data.main(data_path,args.dataset,cat_columns,'/ADULT_CENSUS_INCOME/ADULT_TRAIN_SET.csv')
-    table_metadata = SingleTableMetadata.load_from_dict(table_dict)
-    if args.model == 'ctgan':
-       output_path = data_folder + '/ADULT_CENSUS_INCOME/CTGAN'
-       synthetic_ctgan = pm.tune_performance_ctgan('adult',real_train_data,table_metadata,None,output_path,trials)
-    if args.model == 'tvae':
-        output_path = data_folder + '/ADULT_CENSUS_INCOME/TVAE'
-        synthetic_tvae = pm.tune_performance_tvae('adult',real_train_data,table_metadata,None,output_path,trials)
-    if args.model == 'arf':
-        output_path = data_folder + '/ADULT_CENSUS_INCOME/ARF/'
-        synthetic_arf = pm.tune_performance_arf('adult',real_train_data,str(output_path),cat_columns,trials)
-    if args.model == 'cart':
-        output_path = data_folder + '/ADULT_CENSUS_INCOME/CART/'
-        synthetic_cart = pm.tune_performance_cart('adult',real_train_data,str(output_path),cat_columns)
-    if args.model == 'tabddpm':
-        output_path = data_folder + '/ADULT_CENSUS_INCOME/TABDDPM'
-        print('d')
-
-if args.dataset == 'wine':
-    data_path = data_folder + '/WINE_QUALITY/wine.csv' 
-    cat_columns = ['free sulfur dioxide','quality']
-    real_train_data, table_dict = prep_data.main(data_path,args.dataset,cat_columns,'/WINE_QUALITY/WINE_TRAIN_SET.csv')
-    table_metadata = SingleTableMetadata.load_from_dict(table_dict)
-    if args.model == 'ctgan':
-       output_path = data_folder + '/WINE_QUALITY/CTGAN'
-       synthetic_ctgan = pm.tune_performance_ctgan('wine',real_train_data,table_metadata,None,output_path,trials)
-    if args.model == 'tvae':
-        output_path = data_folder + '/WINE_QUALITY/TVAE'
-        synthetic_tvae = pm.tune_performance_tvae('wine',real_train_data,table_metadata,None,output_path,trials)
-    if args.model == 'arf':
-        output_path = data_folder + '/WINE_QUALITY/ARF/'
-        synthetic_arf = pm.tune_performance_arf('wine',real_train_data,str(output_path),cat_columns,trials)
-    if args.model == 'cart':
-        output_path = data_folder + '/WINE_QUALITY/CART/'
-        synthetic_cart = pm.tune_performance_cart('wine',real_train_data,str(output_path),cat_columns)
-    if args.model == 'tabddpm':
-        output_path = data_folder + '/WINE_QUALITY/TABDDPM'
-        print('d')
+#toevoegen van use case WW naar Bijstand
+#wel opslaan onder andere naam (mag niet op de Github)
+#probeer een kleine mini set aan hyperparameters
+#input variabelen meenemen in de code: output path en dictionary voor categorische kolommen

@@ -6,14 +6,14 @@ import torch
 import sklearn
 import argparse
 import tabsyndex as ts
-import stats 
+import metrics  
 import visuals as vs
 from pathlib import Path
 from sdv.single_table import CTGANSynthesizer, TVAESynthesizer
 
 import os
 
-#os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2' #adjust to the version on LISA!!
+os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2' #adjust to the version on LISA!!
 
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri
@@ -36,6 +36,13 @@ parser.add_argument("metric_type", help="Evaluation metric to compute", type=str
 
 args = parser.parse_args()
 data_folder = '../Data' 
+dataset = args.dataset
+cat_columns_dict = {
+    "bank" : ['job','marital','education','default','housing','loan','contact','month','day_of_week','poutcome','y'],
+    "metro" : ['holiday','weather_main','weather_description'],
+    "adult": ['workclass','education','marital.status','occupation','relationship','race','sex','native.country','income'],
+    "covertype": ['Soil_type','WArea','Cover_Type']
+}
 
 def evaluate_models(real_data,data_type,data_path,cat_columns,target_type='class'):
     models = ['CART','ARF','CTGAN','TVAE']
@@ -98,58 +105,50 @@ def select_best_model(data_type,results_df):
     print('Model: '+str(best_model))
 
 
-if args.dataset == 'bank':
-    path_orig_data = data_folder + '/BANK_MARKETING/BANK_TRAIN_SET.csv'
-    data_path = data_folder + '/BANK_MARKETING'
-    cat_vars = ['job','marital','education','default','housing','loan','contact','month','day_of_week','poutcome','y']
+if dataset:
+    path_orig_data = data_folder + '/' + dataset + '/' + dataset +'_TRAIN_SET.csv'
+    data_path = data_folder + '/' + dataset
+    cat_vars = cat_columns_dict[dataset]
     if args.metric_type == 'tabsyndex':
         real_data = pd.read_csv(path_orig_data,index_col=0)
-        performance_df = evaluate_models(real_data,'bank',data_path,cat_vars,'class')
-        select_best_model('bank', performance_df)
+        if dataset == 'metro':
+            performance_df = evaluate_models(real_data,dataset,data_path,cat_vars,'regr')
+        else:
+            performance_df = evaluate_models(real_data,dataset,data_path,cat_vars,'class')
+        select_best_model(dataset, performance_df)
     if args.metric_type == 'statistical':
         print('c')
-    if args.metric_type == 'outlier':
-        print('d')
+    if args.metric_type == 'visuals':
+        print('e')
+    if args.metric_type == 'ml':
+        print('e')
 
-if args.dataset == 'metro':
-    path_orig_data = data_folder + '/TRAFFIC_VOLUME/TRAFFIC_VOLUME_TRAIN_SET.csv'
-    data_path = data_folder + '/TRAFFIC_VOLUME/'
-    cat_vars =  ['holiday','weather_main','weather_description'] 
-    if args.metric_type == 'tabsyndex':
-        real_data = pd.read_csv(path_orig_data,index_col=0)
-        performance_df = evaluate_models(real_data,'metro',data_path,cat_vars,'regr')
-        select_best_model('metro', performance_df)
-    if args.metric_type == 'statistical':
-        print('c')
-    if args.metric_type == 'outlier':
-        print('d')
-        #use statistical tests to compute scores
-        #from here other metrics can be computed
+# if args.dataset == 'metro':
+#     path_orig_data = data_folder + '/metro/metro_TRAIN_SET.csv'
+#     data_path = data_folder + '/metro/'
+#     cat_vars =  ['holiday','weather_main','weather_description'] 
+#     if args.metric_type == 'tabsyndex':
+#         real_data = pd.read_csv(path_orig_data,index_col=0)
+#         performance_df = evaluate_models(real_data,'metro',data_path,cat_vars,'regr')
+#         select_best_model('metro', performance_df)
+#     if args.metric_type == 'statistical':
+#         print('c')
+#     if args.metric_type == 'outlier':
+#         print('d')
+#         #use statistical tests to compute scores
+#         #from here other metrics can be computed
 
 
-if args.dataset == 'adult':
-    path_orig_data = data_folder + '/ADULT_CENSUS_INCOME/ADULT_TRAIN_SET.csv'
-    data_path = data_folder + '/ADULT_CENSUS_INCOME'
-    cat_vars = ['workclass','education','marital-status','occupation','relationship','race','sex','native-country','class'] 
-    if args.metric_type == 'tabsyndex':
-        real_data = pd.read_csv(path_orig_data,index_col=0)
-        performance_df = evaluate_models(real_data,'heart',data_path,cat_vars,'regr')
-        select_best_model('heart', performance_df)
-    if args.metric_type == 'statistical':
-        print('c')
-    if args.metric_type == 'outlier':
-        print('d')
-
-if args.dataset == 'wine':
-    path_orig_data = data_folder + '/WINE_QUALITY/WINE_TRAIN_SET.csv'
-    data_path = data_folder + '/WINE_QUALITY'
-    cat_vars = ['quality']  
-    if args.metric_type == 'tabsyndex':
-        real_data = pd.read_csv(path_orig_data,index_col=0)
-        performance_df = evaluate_models('wine',real_data,data_path,cat_vars,'class')
-        select_best_model('wine', performance_df)
-    if args.metric_type == 'statistical':
-        print('c')
-    if args.metric_type == 'outlier':
-        print('d')
+# if args.dataset == 'adult':
+#     path_orig_data = data_folder + '/adult/adult_TRAIN_SET.csv'
+#     data_path = data_folder + '/adult'
+#     cat_vars = ['workclass','education','marital-status','occupation','relationship','race','sex','native-country','class'] 
+#     if args.metric_type == 'tabsyndex':
+#         real_data = pd.read_csv(path_orig_data,index_col=0)
+#         performance_df = evaluate_models(real_data,'adult',data_path,cat_vars,'regr')
+#         select_best_model('heart', performance_df)
+#     if args.metric_type == 'statistical':
+#         print('c')
+#     if args.metric_type == 'outlier':
+#         print('d')
 

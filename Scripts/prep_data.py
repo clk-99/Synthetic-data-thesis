@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 import dabl
 import datasist as ds
+import zipfile
 
 #import libraries for plotting
 import matplotlib.pyplot as plt
@@ -18,45 +19,50 @@ warnings.filterwarnings('ignore')
 import os
 data_folder = '../Data'
 
-def main(data_path,dataset,cat_columns,path_to_save):
+def main(data_path,dataset,cat_columns):
     features = cat_columns.copy()
     df, num_vars = load_dataset(dataset,data_path,cat_columns)
     df, target = dataframe_investigation(df, dataset)
-    df = label_encoding(df, cat_columns)
+    if dataset != 'covertype':
+        df = label_encoding(df, cat_columns)
     target_df = df[target]
     if dataset != 'metro':
         features.pop(-1)
     if cat_columns is not None:
         features_df = df[features+num_vars]
-    else:
-        features_df = df[num_vars]
 
     X_train, X_test, y_train, y_test = train_test_split(features_df,target_df,test_size=0.20,random_state=12) #voeg nog stratify parameter toe
     
     real_train_data = pd.concat([X_train.reset_index(drop=True),
                                     y_train.reset_index(drop=True)],axis=1)
+    real_test_data = pd.concat([X_test.reset_index(drop=True),
+                                    y_test.reset_index(drop=True)],axis=1)
     
     table_dict = create_metadata(real_train_data) #create metadata dictionary for CTGAN and TVAE
 
-    real_train_data.to_csv(data_folder + path_to_save,index_label='Index')
+    real_train_data.to_csv(data_folder + '/' + dataset + '/' + dataset +'_TRAIN_SET.csv',index_label='Index')
+    real_test_data.to_csv(data_folder + '/' + dataset + '/' + dataset +'_TEST_SET.csv',index_label='Index')
 
     return real_train_data, table_dict  
 
 
 def load_dataset(data_type,data_path,cat_columns):
-    file = (data_path)
-    if data_type == 'bank':
-         df = pd.read_csv(file,encoding='utf8',sep=';',dtype={col:'object' for col in cat_columns})
+    file = (data_path)      
+    types = ['metro','adult']   
+
+    if data_type in types:
+        df = pd.read_csv(file,sep=',',index_col=0,dtype={col:'object' for col in cat_columns})
     
-    elif cat_columns is not None:
-        df = pd.read_csv(file,encoding='utf8',sep=',',dtype={col:'object' for col in cat_columns})
-    
-    else:
-        df = pd.read_csv(file,encoding='utf8',sep=',',dtype={'quality':'object'}) #wine dataset
+    elif data_type == 'covertype':
+        zf = zipfile.ZipFile(file)
+        df = pd.read_csv(zf.open(data_type+'.csv'),index_col=0,dtype={col:'object' for col in cat_columns})
+    else: #bank dataset    
+        df = pd.read_csv(file,encoding='utf8',sep=';',dtype={col:'object' for col in cat_columns})
 
     print('Size of dataset equals: ',df.shape)
     print('\n First five rows of dataset \n',df.head())
     print('\n Info about nan values: \n',df.info())
+
     num_cols = df.select_dtypes(exclude='object').columns.to_list()
     if data_type == 'metro':
         num_cols.remove('traffic_volume')
@@ -94,13 +100,14 @@ def dataframe_investigation(df,dataset):
     
     elif dataset == 'bank':
         target_var = 'y'
+
         #impute missing values with mode
         df = check_null_values(df)
 
         return df,target_var        
     
-    else: #wine
-        target_var = 'quality'
+    else: #covertype dataset
+        target_var = 'Cover_Type'
 
         #impute missing values with mode
         df = check_null_values(df)
@@ -112,7 +119,6 @@ def label_encoding(df,cat_columns):
     for cat in cat_columns:
         df[cat] = LabelEncoder().fit_transform(df[cat])
     
-    print(df.head())
     return df
 
 def create_metadata(df):    
