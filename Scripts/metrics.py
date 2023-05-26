@@ -16,7 +16,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 
 def hellinger_distance(real_df,syn_df): #for numeric features only?
     """
-    A function that returns the mean Hellinger Distance of real and synthetic datasets over all (numeric) features.
+    A function that returns the mean Hellinger Distance of real and synthetic datasets over all features.
     """
     features = real_df.columns.to_list()
     hellinger = {}
@@ -43,15 +43,18 @@ def log_cluster(real_df,syn_df): #cluster metric
     #merged_df = 
     return
 
-def KStest(real_df,syn_df): #statistical test
+def KStest(real_df,syn_df,cat_columns): #statistical test
     """
     A function that returns the mean KS test for all numeric features.
     """
-    num_features = real_df.select_dtypes(exclude='object').columns.to_list()
+    features = real_df.columns.to_list()
+    for c in cat_columns:
+        features.remove(c)
+    
     ks_statistic = {}
 
-    for num in num_features:
-        result = ss.ks_2samp(real_df[num],syn_df[num])
+    for num in features:
+        result = ss.ks_2samp(real_df[num].values,syn_df[num].values)
         statistic = result[0]
         #p_value = result[1]
         ks_statistic[num] = statistic
@@ -79,43 +82,34 @@ def EStest(real_df,syn_df): #statistical test
     return mean_es
 
 def MLefficiency(syn_df, test_df, target_type='class'): #own metric to test the performance of synthetic dataset
-    X_train = syn_dff.iloc[:,:-1]
+    X_train = syn_df.iloc[:,:-1]
     y_train = syn_df.iloc[:,-1]
 
     X_test = test_df.iloc[:,:-1]
     y_test = test_df.iloc[:,-1]
     
+    performance_metrics = {}
     if target_type == 'class':
         rf = RandomForestClassifier()
         rf.fit(X_train,y_train)
         y_pred = rf.predict(X_test)
-        auc = roc_auc_score(y_test, y_pred)
-        accuracy = accuracy_score(y_test, y_pred)
-        precision = precision_score(y_test, y_pred)
-        recall = recall_score(y_test, y_pred)
-        f1 = f1_score(y_test, y_pred)
-        print("AUC score: ", auc)
-        print("Accuracy: ", accuracy)
-        print("Precision: ", precision)
-        print("Recall: ", recall)
-        print("F1-score: ", f1)
-
+    
     else:
         rf = RandomForestRegressor()
         rf.fit(X_train,y_train)
         y_pred = rf.predict(X_test)
-        auc = roc_auc_score(y_test, y_pred)
-        accuracy = accuracy_score(y_test, y_pred)
-        precision = precision_score(y_test, y_pred)
-        recall = recall_score(y_test, y_pred)
-        f1 = f1_score(y_test, y_pred)
-        print("AUC score: ", auc)        
-        print("AUC score: ", auc)
-        print("Accuracy: ", accuracy)
-        print("Precision: ", precision)
-        print("Recall: ", recall)
-        print("F1-score: ", f1)
 
-    #wat moet teruggegeven worden?
+    performance_metrics['AUC'] = roc_auc_score(y_test, y_pred)
+    performance_metrics['Accuracy'] = accuracy_score(y_test, y_pred)
+    performance_metrics['Precision'] = precision_score(y_test, y_pred)
+    performance_metrics['Recall'] = recall_score(y_test, y_pred)
+    performance_metrics['F1_score'] = f1_score(y_test, y_pred)
+    print("AUC score: ", performance_metrics['AUC'])        
+    print("Accuracy: ", performance_metrics['Accuracy'])
+    print("Precision: ", performance_metrics['Precision'])
+    print("Recall: ", performance_metrics['Recall'])
+    print("F1-score: ", performance_metrics['F1_score'])
+    
+    return performance_metrics
 
 #en dan met een andere evaluatie score zoals AUC

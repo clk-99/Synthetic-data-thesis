@@ -13,7 +13,7 @@ from sdv.single_table import CTGANSynthesizer, TVAESynthesizer
 
 import os
 
-#os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2' #adjust to the version on LISA!!
+os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2' #adjust to the version on LISA!!
 
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri
@@ -37,6 +37,7 @@ parser.add_argument("metric_type", help="Evaluation metric to compute", type=str
 args = parser.parse_args()
 data_folder = '../Data' 
 dataset = args.dataset
+metric_type = args.metric_type
 cat_columns_dict = {
     "bank" : ['job','marital','education','default','housing','loan','contact','month','day_of_week','poutcome','y'],
     "metro" : ['holiday','weather_main','weather_description'],
@@ -44,7 +45,7 @@ cat_columns_dict = {
     "covertype": ['Soil_type','WArea','Cover_Type']
 }
 
-def evaluate_models(real_data,data_type,data_path,cat_columns,target_type='class'):
+def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_type='class'):
     models = ['CART','ARF','CTGAN','TVAE']
     results = pd.DataFrame(columns=['Model_type','Dataset','TabSynDex_score','Basic_score','Correlation_score','Machine_learning_efficiency_score','Support_coverage_score','PMSE_score'])
     for m in models:
@@ -85,6 +86,11 @@ def evaluate_models(real_data,data_type,data_path,cat_columns,target_type='class
                     synthetic_data = tvae_model.sample(num_rows=len(real_data))
                 
                 scores = ts.tabsyndex(real_data, synthetic_data, cat_cols=cat_columns,target_type=target_type)
+                ml_metrics = metrics.MLefficiency(synthetic_data, test_data, target_type=target_type)
+                mean_HD = metrics.hellinger_distance(real_data,synthetic_data)
+                mean_KS = metrics.KStest(real_data, synthetic_data, cat_columns)
+                mean_ES = metrics.EStest(real_data, synthetic_data)
+
                 results.loc[i,'Model_type'] = result.name
                 results.loc[i,'Dataset'] = data_type
                 results.loc[i,'TabSynDex_score'] = scores['score']
@@ -93,8 +99,18 @@ def evaluate_models(real_data,data_type,data_path,cat_columns,target_type='class
                 results.loc[i,'Machine_learning_efficiency_score'] = scores['ml_score']
                 results.loc[i,'Support_coverage_score'] = scores['sup_score']
                 results.loc[i,'PMSE_score'] = scores['pmse_score']
+                results.loc[i,'mean_Hellinger_Distance'] = mean_HD
+                results.loc[i,'mean_Kolmogorov_Smirnov_test'] = mean_KS
+                results.loc[i,'mean_Epps_Singleton_test'] = mean_ES
+                results.loc[i,'AUC_score'] = ml_metrics['AUC']
+                results.loc[i,'Accuracy_score'] = ml_metrics['Accuracy']
+                results.loc[i,'Precision_score'] = ml_metrics['Precision']
+                results.loc[i,'Recall_score'] = ml_metrics['Recall']
+                results.loc[i,'F1_score'] = ml_metrics['F1']
+
                 i+=1
-                
+
+    results.to_csv('../Data/metrics_SDG.csv')          
     return results
 
 def select_best_model(data_type,results_df):
@@ -107,48 +123,18 @@ def select_best_model(data_type,results_df):
 
 if dataset:
     path_orig_data = data_folder + '/' + dataset + '/' + dataset +'_TRAIN_SET.csv'
+    path_test_data = data_folder + '/' + dataset + '/' + dataset +'_TEST_SET.csv'
     data_path = data_folder + '/' + dataset
     cat_vars = cat_columns_dict[dataset]
-    if args.metric_type == 'tabsyndex':
+    if metric_type == 'tabsyndex':
         real_data = pd.read_csv(path_orig_data,index_col=0)
+        test_data = pd.read_csv(path_test_data,index_col=0)
         if dataset == 'metro':
-            performance_df = evaluate_models(real_data,dataset,data_path,cat_vars,'regr')
+            performance_df = evaluate_models(real_data,test_data,dataset,data_path,cat_vars,'regr')
         else:
-            performance_df = evaluate_models(real_data,dataset,data_path,cat_vars,'class')
+            performance_df = evaluate_models(real_data,test_data,dataset,data_path,cat_vars,'class')
         select_best_model(dataset, performance_df)
-    if args.metric_type == 'statistical':
-        print('c')
-    if args.metric_type == 'visuals':
+
+    if metric_type == 'visuals':
         print('e')
-    if args.metric_type == 'ml':
-        print('e')
-
-# if args.dataset == 'metro':
-#     path_orig_data = data_folder + '/metro/metro_TRAIN_SET.csv'
-#     data_path = data_folder + '/metro/'
-#     cat_vars =  ['holiday','weather_main','weather_description'] 
-#     if args.metric_type == 'tabsyndex':
-#         real_data = pd.read_csv(path_orig_data,index_col=0)
-#         performance_df = evaluate_models(real_data,'metro',data_path,cat_vars,'regr')
-#         select_best_model('metro', performance_df)
-#     if args.metric_type == 'statistical':
-#         print('c')
-#     if args.metric_type == 'outlier':
-#         print('d')
-#         #use statistical tests to compute scores
-#         #from here other metrics can be computed
-
-
-# if args.dataset == 'adult':
-#     path_orig_data = data_folder + '/adult/adult_TRAIN_SET.csv'
-#     data_path = data_folder + '/adult'
-#     cat_vars = ['workclass','education','marital-status','occupation','relationship','race','sex','native-country','class'] 
-#     if args.metric_type == 'tabsyndex':
-#         real_data = pd.read_csv(path_orig_data,index_col=0)
-#         performance_df = evaluate_models(real_data,'adult',data_path,cat_vars,'regr')
-#         select_best_model('heart', performance_df)
-#     if args.metric_type == 'statistical':
-#         print('c')
-#     if args.metric_type == 'outlier':
-#         print('d')
 

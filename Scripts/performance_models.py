@@ -7,7 +7,7 @@ import random
 from sdmetrics.single_table import NewRowSynthesis
 import os
 
-#os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2' #adjust to version of LISA
+os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2' #adjust to version of LISA
 
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri
@@ -54,15 +54,6 @@ def tune_performance_tvae(data_type,data,metadata,performance_tvae,output_path,n
             if combination in performance_df.values:
                 #select new set of hyperparameters
                 continue 
-                # epochs = random.randrange(100,501,100)
-                # batch_size = random.randrange(100,501,100)
-                # dimensions = random.sample([4,8,16,64,128,256],3)
-                # compress_dims = dimensions[0]
-                # decompress_dims = dimensions[1]
-                # embedding_dim = dimensions[2]
-                # l2scale = np.round(np.random.choice(np.linspace(start=0.01,stop=0.05,num=10000),size=1)[0],3)
-                # combination = str(epochs)+'_'+str(batch_size)+'_'+str(compress_dims)+'_'+str(decompress_dims)+'_'+str(embedding_dim)+'_'+str(l2scale) 
-                # performance_df.loc[i,'Combination_parameters'] = combination   
             else:
                 performance_df.loc[i,'Combination_parameters'] = combination
 
@@ -93,11 +84,11 @@ def tune_performance_tvae(data_type,data,metadata,performance_tvae,output_path,n
         print("Performance dataframe has been filled with current combination.")
         i += 1
     
-    if data_type:
-        performance_tvae = performance_df.to_csv(str(output_path)+'/'+'performance_tvae_file_'+data_type+'.csv',encoding='utf-8',index=False)
+    # if data_type:
+    #     performance_tvae = performance_df.to_csv(str(output_path)+'/'+'performance_tvae_file_'+data_type+'.csv',encoding='utf-8',index=False)
     
-    else:
-        print('No performance file saved.')
+    # else:
+    #     print('No performance file saved.')
 
     return performance_tvae
 
@@ -126,15 +117,6 @@ def tune_performance_ctgan(data_type,data,metadata,performance_ctgan,output_path
             if combination in performance_df.values:
                 #select new set of hyperparameters
                 continue
-                # epochs = random.randrange(100,501,100)
-                # batch_size = random.randrange(100,501,100)
-                # nr_layers = np.random.randint(low=1,high=3,size=1)[0]
-                # dimensions = random.sample([4,8,16,64],3)
-                # gen_dim = dimensions[0]
-                # dis_dim = dimensions[1]
-                # em_dim = dimensions[2]
-                # combination = str(epochs)+'_'+str(batch_size)+'_'+str(gen_dim)+'_'+str(dis_dim)+'_'+str(em_dim)       
-                # performance_df.loc[i,'Combination_parameters'] = combination  
             else:
                 performance_df.loc[i,'Combination_parameters'] = combination
         else:
@@ -163,10 +145,10 @@ def tune_performance_ctgan(data_type,data,metadata,performance_ctgan,output_path
         print("Performance dataframe has been filled with current combination.")
         i += 1
 
-    if data_type:
-        performance_ctgan = performance_df.to_csv(str(output_path)+'/'+'performance_ctgan_file_'+data_type+'.csv',encoding='utf-8',index=False)
-    else:
-        print('No performance file saved.')
+    # if data_type:
+    #     performance_ctgan = performance_df.to_csv(str(output_path)+'/'+'performance_ctgan_file_'+data_type+'.csv',encoding='utf-8',index=False)
+    # else:
+    #     print('No performance file saved.')
     
     return performance_ctgan
 
@@ -204,7 +186,7 @@ def tune_performance_arf(data_type,data,output_path,cat_columns,nr_combinations)
 
     return  performance_arf
 
-def tune_performance_cart(data_type,data,output_path,cat_columns):
+def tune_performance_cart(data_type,data,output_path,cat_columns,trials):
 
     os.chdir(output_path)
 
