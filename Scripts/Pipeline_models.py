@@ -64,9 +64,3 @@ if dataset:
     if args.model == 'tabddpm':
         output_path = data_folder + '/' + dataset + '/TABDDPM'
         print('d')
-
-
-#toevoegen van use case WW naar Bijstand
-#wel opslaan onder andere naam (mag niet op de Github)
-#probeer een kleine mini set aan hyperparameters
-#input variabelen meenemen in de code: output path en dictionary voor categorische kolommen
