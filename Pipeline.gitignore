@@ -1,0 +1,7 @@
+
+#ignore all .pkl files stored from models CTGAN and TVAE
+*.pkl
+
+#ignore all .rds files stored from R models ARF and CART
+*.rds
+
