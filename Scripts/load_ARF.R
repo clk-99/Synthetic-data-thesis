@@ -1,13 +1,10 @@
 library(arf)
 
-load_arf <- function(df,output_path,cat_vars,saved_model){
-  getwd()
-  setwd(output_path)
- 
+load_arf <- function(df,cat_vars,saved_model){
+
   params <- readRDS(saved_model)
- # params <- forde(arf,df)
-  synth <- forge(params, n_synth = length(df))
-    
+  synth <- forge(params, n_synth = nrow(df))
+
   for(i in colnames(df)){
     if(i %in% cat_vars){
     synth[,i] <- as.character(synth[,i])

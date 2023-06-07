@@ -2,6 +2,7 @@ library(arf)
 
 run_arf <- function(df,nr_trees,cat_columns,name){
 
+
   for (i in colnames(df)){
     if(i %in% cat_columns){
       df[,i]=factor(df[,i])
@@ -13,8 +14,9 @@ run_arf <- function(df,nr_trees,cat_columns,name){
   }
 
   arf <- adversarial_rf(df,verbose=TRUE,num_trees=nr_trees)
-  params <- forde(arf,df)
+  params <- forde(arf,df) 
   saveRDS(params,file=name)
-  syn <- forge(params, n_synth = length(df))
+  #syn <- forge(params, n_synth = nrow(df))
+   
 
 }

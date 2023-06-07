@@ -7,7 +7,7 @@ import random
 from sdmetrics.single_table import NewRowSynthesis
 import os
 
-os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2' #adjust to version of LISA
+#os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2' #adjust to version of LISA
 
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri
@@ -160,8 +160,8 @@ def tune_performance_arf(data_type,data,output_path,cat_columns,nr_combinations)
 
     while i<n:
         #converting data into r object for passing into r function
-        with localconverter(ro.default_converter + pandas2ri.converter):
-            df_r = ro.conversion.py2rpy(data)
+        with (ro.default_converter + pandas2ri.converter).context():
+            df_r = ro.conversion.get_conversion().py2rpy(data)
         
         #Choose random nr of trees
         nr_trees = random.randrange(5,101,5)
@@ -178,9 +178,9 @@ def tune_performance_arf(data_type,data,output_path,cat_columns,nr_combinations)
         synthetic_df_r = arf_function_r(df_r,nr_trees,cat_columns,model_name)
 
         #Convert back to pandas dataframe
-        with localconverter(ro.default_converter + pandas2ri.converter):
-            synthetic_data = ro.conversion.rpy2py(synthetic_df_r)
-
+        with (ro.default_converter + pandas2ri.converter).context():
+            synthetic_data = ro.conversion.get_conversion().rpy2py(synthetic_df_r)
+        
         performance_arf[nr_trees] = synthetic_data
         i += 1
 

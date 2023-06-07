@@ -13,19 +13,40 @@ import scipy.stats as ss
 from dython.nominal import associations, numerical_encoding
 
 
-def tabsyndex(real_data, fake_data, cat_cols, target_col=-1, target_type='regr'):
+def tabsyndex(real_data, fake_data, cat_cols, target_col, target_type):
 
   def mape (vector_a, vector_b):
     return abs(vector_a-vector_b)/abs(vector_a+1e-6)
-
-  print(real_data.dtypes)
-  print(fake_data.dtypes) 
-  scaler = MinMaxScaler()
-  real_data_norm = scaler.fit_transform(real_data)
-  real_data_norm = pd.DataFrame(real_data_norm, columns=real_data.columns)
-  fake_data_norm = scaler.transform(fake_data)
-  fake_data_norm = pd.DataFrame(fake_data_norm, columns=fake_data.columns)
   
+  real_df = real_data.drop(cat_cols, axis=1)
+  fake_df = fake_data.drop(cat_cols, axis=1)
+
+  scaler = MinMaxScaler()
+  real_temp = scaler.fit_transform(real_df)
+  real_temp = pd.DataFrame(real_temp, columns=real_df.columns)
+  real_data_norm = pd.concat([real_temp,real_data[cat_cols]],axis=1)
+  real_data_norm = real_data_norm[real_data.columns]
+  fake_temp = scaler.transform(fake_df)
+  fake_temp = pd.DataFrame(fake_temp, columns=fake_df.columns)
+  cols = fake_temp.columns.to_list() + cat_cols
+  cols_dict = {}
+  i = 0
+  for c in cols:
+    cols_dict[i] = c
+    i += 1
+  fake_data_norm = pd.concat([fake_temp,fake_data[cat_cols].reset_index(drop=True)],axis=1,ignore_index=True)
+  fake_data_norm = fake_data_norm.rename(cols_dict, axis='columns')
+  fake_data_norm = fake_data_norm[fake_data.columns]
+  
+  #apply one hot encoding to both real and synthetic datasets for all categorical features
+  real = numerical_encoding(real_data_norm, nominal_columns=cat_cols)
+  real = real[sorted(real.columns)]
+  fake = numerical_encoding(fake_data_norm, nominal_columns=cat_cols)
+  missing_cols = set(real.columns.to_list()) - set(fake.columns.to_list())
+  for m in missing_cols:
+    fake[m] = 0
+  fake = fake[sorted(fake.columns)]
+
   def basic_stats(cat_cols):
     #aanpassen op alleen numerieke kolommen van dataset
     real_df = real_data.drop(cat_cols, axis=1)
@@ -70,14 +91,12 @@ def tabsyndex(real_data, fake_data, cat_cols, target_col=-1, target_type='regr')
     return score
 
   def ml_efficacy():
-    real = numerical_encoding(real_data_norm, nominal_columns=cat_cols)
-    fake = numerical_encoding(fake_data_norm, nominal_columns=cat_cols)
+    real_x = real.drop(target_col, axis=1)
+    real_y = real[target_col]
+    fake_x = fake.drop(target_col, axis=1)
+    fake_y = fake[target_col]
 
-    real_x = real.drop(real.columns[target_col], axis=1)
-    real_y = real[real.columns[target_col]]
-    fake_x = fake.drop(fake.columns[target_col], axis=1)
-    fake_y = fake[fake.columns[target_col]]
-
+    #print(list(zip(real_x.columns,fake_x.columns)))
     if target_type == 'regr':
         r_estimators = [
                     RandomForestRegressor(n_estimators=20, max_depth=5, random_state=42),
@@ -130,19 +149,13 @@ def tabsyndex(real_data, fake_data, cat_cols, target_col=-1, target_type='regr')
     return score
 
   def pmse():
-    #data = pd.concat([real_data_norm.reset_index(drop=True),
-                                   # fake_data_norm.reset_index(drop=True)],axis=1)
-    
-    data = real_data_norm.append(fake_data_norm, ignore_index=True)
+    data = real.append(fake, ignore_index=True)
     data['target'] = [0]*len(real_data)+[1]*len(fake_data)
-    print(data.head())
 
     data = data.sample(frac=1)
     x = data.drop('target', axis=1)
     y = data['target']
-    #poly = PolynomialFeatures(degree = 2, include_bias=False)
-    #x_poly = poly.fit_transform(x)
-
+    
     estimator = LogisticRegression(max_iter=5000, random_state=42)
     estimator.fit(x, y)
     p = estimator.predict_proba(x)
@@ -158,6 +171,29 @@ def tabsyndex(real_data, fake_data, cat_cols, target_col=-1, target_type='regr')
     score = math.pow(1.2,-abs(1-ratio))
     #print('4:', ratio, score)
     return score
+  
+  def unique_values_check(real_df, fake_df, col):
+    #returns: boolean value
+    #if True, method was incapable of synthesizing all unique categories of a categorical variables
+    
+    real_col_num = pd.Series(real_df[col].value_counts())
+    real_col_num.index = real_col_num.index.astype(int)
+    real_uniq = real_col_num.index.values
+
+    fake_col_num = pd.Series(fake_df[col].value_counts())
+    fake_col_num.index = fake_col_num.index.astype(int)
+    fake_uniq = fake_col_num.index.values
+
+    missing_cols = set(real_uniq) - set(fake_uniq)
+    if len(missing_cols) > 0:
+      for m in missing_cols:
+        new_value = pd.Series(0,index=[m],name=col)
+        fake_col_num = fake_col_num.append(new_value,ignore_index=False)
+      missing_unique = True
+    else:
+      missing_unique = False
+
+    return real_col_num, fake_col_num, missing_unique
 
   def sup_cov(num_bins=20):
     sup = 0
@@ -167,12 +203,11 @@ def tabsyndex(real_data, fake_data, cat_cols, target_col=-1, target_type='regr')
       col_sup = 0
       non_zero_cat = 0
 
-      if col in cat_cols:
-        real_col_num = real_data[col].value_counts()
-        fake_col_num = fake_data[col].value_counts()
-        
-        
+      if col in cat_cols: #categorical features
+        real_col_num, fake_col_num, missing_unique = unique_values_check(real_data,fake_data,col)
+
         for i in real_col_num.index:
+       
           if real_col_num.iloc[i] != 0:
             non_zero_cat += 1
             col_sup += min((fake_col_num.iloc[i]/real_col_num.iloc[i])*scaling_factor,2)
@@ -181,7 +216,7 @@ def tabsyndex(real_data, fake_data, cat_cols, target_col=-1, target_type='regr')
         if(col_sup>1):
           col_sup = 1.0
 
-      else:
+      else: #numerical features
         real_col, bins = pd.cut(real_data[col], bins=num_bins, ordered=False, 
                               labels=range(num_bins), retbins=True)
         real_col_num = real_col.value_counts()
@@ -200,13 +235,13 @@ def tabsyndex(real_data, fake_data, cat_cols, target_col=-1, target_type='regr')
 
     sup /= len(real_data.columns) #average support coverage
     #print('5:', sup)
-    return sup
+    return sup, missing_unique
   
   basic_score = basic_stats(cat_cols)
   corr_score = corr()
   ml_score = ml_efficacy()
   pmse_score = pmse()
-  sup_score = sup_cov()
+  sup_score, missing_unique = sup_cov()
   score = (basic_score + corr_score + ml_score + sup_score+ pmse_score)/5
 
-  return {"score": score, "basic_score": basic_score, "corr_score": corr_score, "ml_score": ml_score, "sup_score": sup_score, "pmse_score": pmse_score}
+  return {"score": score, "basic_score": basic_score, "corr_score": corr_score, "ml_score": ml_score, "sup_score": sup_score, "pmse_score": pmse_score}, missing_unique

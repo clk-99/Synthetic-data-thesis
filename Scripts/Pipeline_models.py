@@ -7,10 +7,12 @@ import random
 import torch
 import sklearn
 import argparse
+from distutils.util import strtobool
 
 #import self-written functions
 import performance_models as pm
 import prep_data 
+import visuals
 
 import os
 from pathlib import Path
@@ -27,15 +29,17 @@ parser = argparse.ArgumentParser(description='Evaluation procedure to select opt
 parser.add_argument("dataset", help='Name of dataset',type=str,default='bank')
 parser.add_argument("model", help='Model to generate synthetic data',type=str,default='ctgan')
 parser.add_argument("nr_combinations",help='# of trials for various hyperparameter settings',type=int,default=1)
+parser.add_argument("outliers",help='Investigate whether dataset contains outliers',type=lambda x: bool(strtobool(x)),default=True)
 
 args = parser.parse_args()
 trials = args.nr_combinations
 dataset = args.dataset
 model = args.model
+outliers_bool = args.outliers
 data_folder = '../Data'
 cat_columns_dict = {
-    "bank" : ['job','marital','education','default','housing','loan','contact','month','day_of_week','poutcome','y'],
-    "metro" : ['holiday','weather_main','weather_description'],
+    "bank" : ['job','marital','education','default','housing','loan','contact','month','day_of_week','poutcome','y'], 
+    "metro" : ['holiday','weather_main','weather_description'], #regression predictor: 'traffic_volume'
     "adult": ['workclass','education','marital.status','occupation','relationship','race','sex','native.country','income'],
     "covertype": ['Soil_type','Warea','Cover_Type']
 }
@@ -45,22 +49,27 @@ if dataset:
         data_path = data_folder + '/' + dataset + '/' + dataset + '.zip'
     else:
         data_path = data_folder + '/' + dataset + '/' + dataset + '.csv' 
-
     cat_columns = cat_columns_dict[dataset]
-    real_train_data, table_dict = prep_data.main(data_path,dataset,cat_columns)
+    if dataset == 'metro': #deze regel kan verwijderd als een json file wordt ingeladen voor elke data met zn properties
+        target = 'traffic_volume'
+    else:
+        target = cat_columns[-1]
+    real_train_data, table_dict = prep_data.main(data_path,dataset,cat_columns,target,outliers_bool)
     table_metadata = SingleTableMetadata.load_from_dict(table_dict)
-    if args.model == 'ctgan':
-        output_path = data_folder + '/' + dataset + '/CTGAN'
-        synthetic_ctgan = pm.tune_performance_ctgan(dataset,real_train_data,table_metadata,None,output_path,trials)
-    if args.model == 'tvae':
-        output_path = data_folder + '/' + dataset + '/TVAE'
+    output_path = data_folder + '/' + dataset + '/' + model
+    if model == 'ctgan':
+        synthetic_model = pm.tune_performance_ctgan(dataset,real_train_data,table_metadata,None,output_path,trials)
+    elif model == 'tvae':
         synthetic_tvae = pm.tune_performance_tvae(dataset,real_train_data,table_metadata,None,output_path,trials)
-    if args.model == 'arf':
-        output_path = data_folder + '/' + dataset + '/ARF/'
+    elif model == 'arf':
         synthetic_arf = pm.tune_performance_arf(dataset,real_train_data,str(output_path),cat_columns,trials)
-    if args.model == 'cart':
-        output_path = data_folder + '/' + dataset + '/CART/'
+    elif model == 'cart':
         synthetic_cart = pm.tune_performance_cart(dataset,real_train_data,str(output_path),cat_columns,trials)
-    if args.model == 'tabddpm':
-        output_path = data_folder + '/' + dataset + '/TABDDPM'
+    else:
         print('d')
+
+
+#toevoegen van use case WW naar Bijstand
+#wel opslaan onder andere naam (mag niet op de Github)
+#probeer een kleine mini set aan hyperparameters
+#input variabelen meenemen in de code: output path en dictionary voor categorische kolommen

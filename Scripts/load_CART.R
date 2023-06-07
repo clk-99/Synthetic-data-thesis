@@ -1,6 +1,6 @@
 library(synthpop)
 
-load_cart <- function(df,output_path,cat_columns,saved_model){
+load_cart <- function(df,cat_columns,saved_model){
   print(getwd())
   #setwd(output_path)
   cart <- readRDS(saved_model)
