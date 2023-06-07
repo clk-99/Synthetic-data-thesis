@@ -8,3 +8,6 @@
 #ignore all .keep files (they are empty anyways)
 *.keep
 
+#ignore all data output files
+*.csv
+
