@@ -5,3 +5,6 @@
 #ignore all .rds files stored from R models ARF and CART
 *.rds
 
+#ignore all .keep files (they are empty anyways)
+*.keep
+
