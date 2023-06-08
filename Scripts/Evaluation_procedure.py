@@ -121,7 +121,7 @@ def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_t
                         results.loc[i,metric] = ml_metrics[metric]
                     i+=1
 
-    results.to_csv('../Data/metrics_SDG.csv')          
+    results.to_csv('../Data/'+data_type+'/metrics_SDG_'+data_type+'.csv',index_label='Index')          
     return results
 
 def select_best_model(data_type,results_df):
@@ -189,12 +189,15 @@ def generate_visualize_best_SDG(real_df,cat_columns,sdg,dataset,data_path,output
     
     os.chdir('..')
     os.chdir('..')
-    os.chdir(output_path) #to save all the visuals   
-    vs.create_heatmaps(real_df,syn_df,dataset)
+    os.chdir(output_path) #to save all the visuals  
+    print(real_df.shape)
+    print(syn_df.shape) 
+    vs.create_heatmaps(real_df,dataset,True)
+    vs.create_heatmaps(syn_df,dataset,False)
     vs.create_boxplots(real_df,syn_df,dataset)
+    vs.create_violinplots(real_df,syn_df,dataset)
     vs.create_kdeplots(real_df,syn_df,dataset)
     vs.create_ecdfplots(real_df,syn_df,dataset)  
-
     
 
 if dataset:
@@ -203,9 +206,12 @@ if dataset:
     data_path = data_folder + '/' + dataset + '/'
     visual_path = data_folder + '/' + dataset + '/visuals/'
     cat_vars = cat_columns_dict[dataset]
+    real_data = pd.read_csv(path_orig_data,index_col=0,dtype={col:'object' for col in cat_vars})
+    test_data = pd.read_csv(path_test_data,index_col=0,dtype={col:'object' for col in cat_vars})
     if metric_type == 'tabsyndex':
-        real_data = pd.read_csv(path_orig_data,index_col=0,dtype={col:'object' for col in cat_vars})
-        test_data = pd.read_csv(path_test_data,index_col=0,dtype={col:'object' for col in cat_vars})
         performance_df = evaluate_models(real_data,test_data,dataset,data_path,cat_vars,target_type[dataset],multi_target_bool[dataset])
+    if metric_type == 'visuals':
+        result_path = data_folder + '/' + dataset + '/metrics_SDG_' + dataset + '.csv'
+        performance_df = pd.read_csv(result_path,index_col=0)
         best_SDG = select_best_model(dataset, performance_df)
         generate_visualize_best_SDG(real_data,cat_vars,str(best_SDG),dataset,data_path,visual_path)
