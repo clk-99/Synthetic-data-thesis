@@ -102,8 +102,8 @@ def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_t
                     print(mean_HD)
                     mean_KS = metrics.KStest(real_data, synthetic_data, cat_columns)
                     print(mean_KS)
-                    mean_ES = metrics.EStest(real_data, synthetic_data, cat_columns)
-                    print(mean_ES)
+                    #mean_ES = metrics.EStest(real_data, synthetic_data, cat_columns)
+                    #print(mean_ES)
 
                     results.loc[i,'Model_type'] = result.name
                     results.loc[i,'Dataset'] = data_type
@@ -116,7 +116,7 @@ def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_t
                     results.loc[i,'Missing_unique_values'] = missing_unique
                     results.loc[i,'mean_Hellinger_Distance'] = mean_HD
                     results.loc[i,'mean_Kolmogorov_Smirnov_test'] = mean_KS
-                    results.loc[i,'mean_Epps_Singleton_test'] = mean_ES
+                    #results.loc[i,'mean_Epps_Singleton_test'] = mean_ES
                     for metric in ml_metrics:
                         results.loc[i,metric] = ml_metrics[metric]
                     i+=1
