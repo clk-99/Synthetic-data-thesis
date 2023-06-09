@@ -28,35 +28,38 @@ def create_heatmaps(df,datatype,real=True):
         plt.savefig("heatmap_"+str(datatype)+"_synthetic.pdf",bbox_inches='tight')
     
 
-def create_boxplots(real_df,syn_df,datatype):
-    fig, axs = plt.subplots(figsize=(11,9))
+def create_boxplots(real_df,syn_df,datatype):    
     features = real_df.columns.to_list()
     df_num = real_df.select_dtypes(include='object').columns.to_list()
     real_df[df_num] = real_df[df_num].astype('int')
     syn_df[df_num] = syn_df[df_num].astype('int')
     concatenated = pd.concat([real_df.assign(dataset='Real'),syn_df.assign(dataset='Synthetic')],ignore_index=True)
-    for f in features:        
+    for f in features:      
+        fig, axs = plt.subplots(figsize=(11,9))  
         sns.boxplot(x=f,y='dataset',data=concatenated,orient='h')
         plt.title("Boxplots real vs synthetic data for feature "+str(f))
         #plt.show()
         plt.savefig("boxplot_feature_"+str(f)+".pdf",bbox_inches='tight')
+        plt.close()
     
 
 def create_kdeplots(real_df,syn_df,datatype):
-    fig, axs = plt.subplots(figsize=(11,9))
+    
     features = real_df.columns.to_list()
     df_num = real_df.select_dtypes(include='object').columns.to_list()
     real_df[df_num] = real_df[df_num].astype('int')
     syn_df[df_num] = syn_df[df_num].astype('int')
     concatenated = pd.concat([real_df.assign(dataset='Real'),syn_df.assign(dataset='Synthetic')],ignore_index=True)
     for f in features:
+        fig, axs = plt.subplots(figsize=(11,9))
         sns.kdeplot(x=f,data=concatenated,hue='dataset',common_norm=True,bw_adjust=.2)
         plt.title("KDEplots real vs synthetic data for feature "+str(f))
         plt.savefig("kdeplot_feature_"+str(f)+".pdf",bbox_inches='tight')
+        plt.close()
     
 
 def create_violinplots(real_df,syn_df,datatype):
-    fig, axs = plt.subplots(figsize=(11,9))
+    
     features = real_df.columns.to_list()
     df_num = real_df.select_dtypes(include='object').columns.to_list()
     real_df[df_num] = real_df[df_num].astype('int')
@@ -64,12 +67,13 @@ def create_violinplots(real_df,syn_df,datatype):
     concatenated = pd.concat([real_df.assign(dataset='Real'),syn_df.assign(dataset='Synthetic')],ignore_index=True)
 
     for f in features:
+        fig, axs = plt.subplots(figsize=(11,9))
         sns.violinplot(x='dataset',y=f,data=concatenated)
         plt.title("Violinplots real vs synthetic data for feature "+str(f))
         plt.savefig("violinplots_feature_"+str(f)+".pdf",bbox_inches='tight')
+        plt.close()
 
-def create_ecdfplots(real_df,syn_df,datatype):
-    fig, axs = plt.subplots(figsize=(11,9))
+def create_ecdfplots(real_df,syn_df,datatype):    
     features = real_df.columns.to_list()
     df_num = real_df.select_dtypes(include='object').columns.to_list()
     real_df[df_num] = real_df[df_num].astype('int')
@@ -77,9 +81,11 @@ def create_ecdfplots(real_df,syn_df,datatype):
     concatenated = pd.concat([real_df.assign(dataset='Real'),syn_df.assign(dataset='Synthetic')],ignore_index=True)
 
     for f in features:
-        sns.ecdfplot(x=f,y='count',data=concatenated,hue='dataset',stat='count')
+        fig, axs = plt.subplots(figsize=(11,9))
+        sns.ecdfplot(x=f,data=concatenated,hue='dataset',stat='count')
         plt.title("ECDF plots real vs synthetic data for feature "+str(f))
         plt.savefig("ecdfplots_feature_"+str(f)+".pdf")
+        plt.close()
     
 def create_pairplot(df):
     features = df.columns.to_list()
