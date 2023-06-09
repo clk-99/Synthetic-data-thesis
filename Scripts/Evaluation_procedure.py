@@ -13,7 +13,7 @@ from sdv.single_table import CTGANSynthesizer, TVAESynthesizer
 
 import os
 
-#os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2' #adjust to the version on LISA!!
+os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2' #adjust to the version on LISA!!
 
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri

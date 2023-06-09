@@ -89,11 +89,13 @@ def MLefficiency(syn_df, test_df, cat_cols, target_type='class',multi=False): #o
     syn_data = numerical_encoding(syn_df, nominal_columns=cat_cols) #one-hot encoding of categorical variables
     test_data = numerical_encoding(test_df, nominal_columns=cat_cols)
 
-    X_train = syn_df.iloc[:,:-1]
-    y_train = syn_df.iloc[:,-1].round(decimals=0)
+    print(test_df.head())
+    print(test_data.head())
+    X_train = syn_data.iloc[:,:-1]
+    y_train = syn_data.iloc[:,-1].round(decimals=0)
 
-    X_test = test_df.iloc[:,:-1]
-    y_test = test_df.iloc[:,-1].round(decimals=0).values
+    X_test = test_data.iloc[:,:-1]
+    y_test = test_data.iloc[:,-1].round(decimals=0).values
     
     performance_metrics = {}
     if target_type == 'regr':
