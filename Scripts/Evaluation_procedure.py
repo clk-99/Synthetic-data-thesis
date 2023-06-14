@@ -13,7 +13,7 @@ from sdv.single_table import CTGANSynthesizer, TVAESynthesizer
 
 import os
 
-#os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2' #adjust to the version on LISA!!
+os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2' #adjust to the version on LISA!!
 
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri
@@ -208,7 +208,7 @@ if dataset:
     cat_vars = cat_columns_dict[dataset]
     real_data = pd.read_csv(path_orig_data,index_col=0,dtype={col:'object' for col in cat_vars})
     test_data = pd.read_csv(path_test_data,index_col=0,dtype={col:'object' for col in cat_vars})
-    if metric_type == 'tabsyndex':
+    if metric_type == 'metrics':
         performance_df = evaluate_models(real_data,test_data,dataset,data_path,cat_vars,target_type[dataset],multi_target_bool[dataset])
     if metric_type == 'visuals':
         result_path = data_folder + '/' + dataset + '/metrics_SDG_' + dataset + '.csv'

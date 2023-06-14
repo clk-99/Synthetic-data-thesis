@@ -51,7 +51,7 @@ def main(data_path,dataset,cat_columns,target,outliers_bool):
 
 def load_dataset(data_type,data_path,cat_columns):
     file = (data_path)      
-    types = ['metro','adult']   
+    types = ['metro','adult','iris']   
 
     if data_type in types:
         df = pd.read_csv(file,sep=',',index_col=0,dtype={col:'object' for col in cat_columns})
