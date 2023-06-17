@@ -87,15 +87,16 @@ def EStest(real_df,syn_df,cat_cols): #statistical test
 
 def unique_values_check(real, fake):
     missing_cols = set(real.columns.to_list()) - set(fake.columns.to_list())
+    print(missing_cols)
     for m in missing_cols:
         fake[m] = 0
-            
+
     return fake
 
 def MLefficiency(syn_df, test_df, cat_cols, target_type='class',multi=False): #own metric to test the performance of synthetic dataset    
     syn_data = numerical_encoding(syn_df, nominal_columns=cat_cols) #one-hot encoding of categorical variables
     test_data = numerical_encoding(test_df, nominal_columns=cat_cols)
-
+    
     syn_data = unique_values_check(test_data, syn_data)
     X_train = syn_data.iloc[:,:-1]
     y_train = syn_data.iloc[:,-1].round(decimals=0)
@@ -107,7 +108,7 @@ def MLefficiency(syn_df, test_df, cat_cols, target_type='class',multi=False): #o
     if target_type == 'regr':
         rf = RandomForestRegressor()
         rf.fit(X_train,y_train)
-        y_pred = np.round(rf.predict(X_test),0)     
+        y_pred = rf.predict(X_test)
 
         performance_metrics['Explained_variance'] = explained_variance_score(y_test, y_pred)
         performance_metrics['Mean_squared_error'] = mean_squared_error(y_test, y_pred)
