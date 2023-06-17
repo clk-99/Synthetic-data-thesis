@@ -3,7 +3,6 @@ import numpy as np
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
-import dabl
 import zipfile
 
 #import libraries for plotting
@@ -33,7 +32,7 @@ def main(data_path,dataset,cat_columns,target,outliers_bool):
     if cat_columns is not None:
         features_df = df[features+num_vars]
 
-    X_train, X_test, y_train, y_test = train_test_split(features_df,target_df,test_size=0.20,shuffle=False) #voeg nog stratify parameter toe
+    X_train, X_test, y_train, y_test = train_test_split(features_df,target_df,test_size=0.20,shuffle=True) #voeg nog stratify parameter toe
 
     real_train_data = pd.concat([X_train.reset_index(drop=True),
                                     y_train.reset_index(drop=True)],axis=1)

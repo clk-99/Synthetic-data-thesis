@@ -91,10 +91,10 @@ def tabsyndex(real_data, fake_data, cat_cols, target_col, target_type):
     return score
 
   def ml_efficacy():
-    real_x = real.drop(target_col, axis=1)
-    real_y = real[target_col]
-    fake_x = fake.drop(target_col, axis=1)
-    fake_y = fake[target_col]
+    real_x = real_data_norm.drop(target_col, axis=1)
+    real_y = real_data_norm[target_col]
+    fake_x = fake_data_norm.drop(target_col, axis=1)
+    fake_y = fake_data_norm[target_col]
 
     #print(list(zip(real_x.columns,fake_x.columns)))
     if target_type == 'regr':
