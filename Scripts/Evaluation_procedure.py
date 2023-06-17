@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import math
 import random
+import re
 import torch
 import sklearn
 import argparse
@@ -13,7 +14,7 @@ from sdv.single_table import CTGANSynthesizer, TVAESynthesizer
 
 import os
 
-os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2' #adjust to the version on LISA!!
+#os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2' #adjust to the version on LISA!!
 
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri
@@ -39,18 +40,21 @@ data_folder = '../Data'
 dataset = args.dataset
 metric_type = args.metric_type
 target_type = {
+    "iris": "class",
     "bank": "class",
     "metro": "regr",
     "adult": "class",
     "covertype": "class"
 }
 multi_target_bool = {
+    "iris": True,
     "bank": False,
     "metro": True,
     "adult": False,
     "covertype": True
 }
 cat_columns_dict = {
+    "iris": ['class'],
     "bank" : ['job','marital','education','default','housing','loan','contact','month','day_of_week','poutcome','y'],
     "metro" : ['holiday','weather_main','weather_description'],
     "adult": ['workclass','education','marital.status','occupation','relationship','race','sex','native.country','income'],
@@ -69,14 +73,11 @@ def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_t
             print(output_path)
             for result in it:
                 print(result.name)  
-                if result.name == 'empty.keep':
+                if re.search('.keep|.csv',result.name):
                     #to skip empty.keep files and break current for loop.
                     print('Incorrect file to proceed in current directory')
-                    os.chdir('..')
-                    print(os.getcwd())
-                    os.chdir('..')
-                    print(os.getcwd())
-                    break
+                    
+                    continue
                 else:
                     if m == 'arf':
                         synthetic_data = reload_ARF(real_data,cat_columns,result.name)
@@ -88,12 +89,13 @@ def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_t
                         #reload ctgan model
                         synthetic_data = reload_CTGAN(real_data,result.name)
 
-                    else: #elif m == 'tvae': #tvae model
+                    elif m == 'tvae': #tvae model
                         synthetic_data = reload_TVAE(real_data,result.name)
                     
                     for c in cat_columns:
                         synthetic_data[c] = synthetic_data[c].astype(str).str.split('.').str[0]
                     print(synthetic_data.shape)
+                    print(test_data.head())
                     scores, missing_unique = ts.tabsyndex(real_data, synthetic_data, cat_cols=cat_columns,target_col=real_data.columns.to_list()[-1],target_type=target_type)
                     print(scores)
                     ml_metrics = metrics.MLefficiency(synthetic_data, test_data, cat_columns, target_type=target_type, multi=multi_target)
@@ -105,7 +107,7 @@ def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_t
                     #mean_ES = metrics.EStest(real_data, synthetic_data, cat_columns)
                     #print(mean_ES)
 
-                    results.loc[i,'Model_type'] = result.name
+                    results.loc[i,'Saved_model'] = result.name
                     results.loc[i,'Dataset'] = data_type
                     results.loc[i,'TabSynDex_score'] = scores['score']
                     results.loc[i,'Basic_score'] = scores['basic_score']
@@ -120,6 +122,10 @@ def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_t
                     for metric in ml_metrics:
                         results.loc[i,metric] = ml_metrics[metric]
                     i+=1
+            os.chdir('..')
+            print(os.getcwd())
+            os.chdir('..')
+            print(os.getcwd())
 
     results.to_csv('../Data/'+data_type+'/metrics_SDG_'+data_type+'.csv',index_label='Index')          
     return results
@@ -132,6 +138,41 @@ def select_best_model(data_type,results_df):
     print('Model: '+str(best_model))
 
     return best_model
+
+def merge_performance_dfs(data_type,data_path,model):
+    model_df = pd.DataFrame()
+    model_results = data_path + model 
+    with os.scandir(model_results) as it:
+        output_path = model_results   
+        os.chdir(output_path)
+     
+        for result in it:
+            if re.search('.csv',result.name):
+                performance_model = pd.read_csv(result.name,delimiter=',')
+                temp_df = pd.concat([model_df,performance_model],ignore_index=True,sort=False)
+                model_df = temp_df
+            else:
+                continue #go to next result in the loop
+    os.chdir('..')
+    os.chdir('..')
+
+    return model_df
+
+def merge_models(data_type,metrics_df,data_path):
+    models = ['arf','cart','ctgan','tvae']
+    final_df = pd.DataFrame()
+    for m in models:
+        m_df = merge_performance_dfs(data_type,data_path,m)
+        temp_df = pd.concat([final_df,m_df],ignore_index=True)
+        final_df = temp_df
+    
+    temp_v2_df = pd.concat([final_df,metrics_df],ignore_index=True)
+    print(temp_v2_df.head())
+    final_df = temp_v2_df
+
+    final_df.to_csv('../Data/'+data_type+'/final_results_SDG_'+data_type+'.csv',index_label='Index') 
+
+    return final_df
 
 def reload_ARF(df,cat_vars,result):
     with localconverter(ro.default_converter + pandas2ri.converter):
@@ -190,8 +231,6 @@ def generate_visualize_best_SDG(real_df,cat_columns,sdg,dataset,data_path,output
     os.chdir('..')
     os.chdir('..')
     os.chdir(output_path) #to save all the visuals  
-    print(real_df.shape)
-    print(syn_df.shape) 
     vs.create_heatmaps(real_df,dataset,True)
     vs.create_heatmaps(syn_df,dataset,False)
     vs.create_boxplots(real_df,syn_df,dataset)
@@ -209,7 +248,9 @@ if dataset:
     real_data = pd.read_csv(path_orig_data,index_col=0,dtype={col:'object' for col in cat_vars})
     test_data = pd.read_csv(path_test_data,index_col=0,dtype={col:'object' for col in cat_vars})
     if metric_type == 'metrics':
+        print(test_data.head())
         performance_df = evaluate_models(real_data,test_data,dataset,data_path,cat_vars,target_type[dataset],multi_target_bool[dataset])
+        results_df = merge_models(dataset,performance_df,data_path)
     if metric_type == 'visuals':
         result_path = data_folder + '/' + dataset + '/metrics_SDG_' + dataset + '.csv'
         performance_df = pd.read_csv(result_path,index_col=0)
