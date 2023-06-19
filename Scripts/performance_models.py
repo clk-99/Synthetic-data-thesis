@@ -8,7 +8,7 @@ from sdmetrics.single_table import NewRowSynthesis
 import os
 import string
 
-os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2' #adjust to version of LISA
+#os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2' #adjust to version of LISA
 
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri
@@ -74,7 +74,7 @@ def tune_performance_tvae(data_type,data,metadata,output_path,nr_combinations):
         performance_df.loc[i,'Embedding_dimension'] = embedding_dim
         performance_df.loc[i,'Regularization_term'] = l2scale   
         performance_df.loc[i,'Saved_model'] = 'TVAE_' + str(unique_id) + '.pkl'     
-        performance_df.loc[i,'Est_train_time'] = et - st
+        performance_df.loc[i,'Train_time(in seconds)'] = et - st
         print("Performance dataframe has been filled and saved with current combination.")
         performance_df.to_csv(str(output_path) + '/performance_tvae_'+str(unique_id)+'.csv',encoding='utf-8',index=False)
         i += 1
@@ -117,7 +117,7 @@ def tune_performance_ctgan(data_type,data,metadata,output_path,nr_combinations):
         performance_df.loc[i,'Discriminator_dimension'] = dis_dim
         performance_df.loc[i,'Embedding_dimension'] = em_dim
         performance_df.loc[i,'Saved_model'] = 'CTGAN_'+ str(unique_id) + '.pkl' 
-        performance_df.loc[i,'Est_train_time'] = et - st
+        performance_df.loc[i,'Train_time(in seconds)'] = et - st
         print("Performance dataframe has been filled and saved with current combination.")
         performance_df.to_csv(str(output_path) + '/performance_ctgan_'+str(unique_id)+'.csv',encoding='utf-8',index=False)
         i += 1
@@ -162,7 +162,7 @@ def tune_performance_arf(data_type,data,output_path,cat_columns,nr_combinations)
         performance_arf.loc[i,'Nr_rows'] = len(data)
         performance_arf.loc[i,'Nr_trees'] = nr_trees
         performance_arf.loc[i,'Saved_model'] = model_name
-        performance_arf.loc[i,'Est_train_time'] = et - st
+        performance_arf.loc[i,'Train_time(in seconds)'] = et - st
         print("Performance dataframe has been filled and saved with current hyperparameter.")
         performance_arf.to_csv('performance_arf_'+str(unique_id)+'.csv',encoding='utf-8',index=False)
         i += 1
@@ -195,7 +195,7 @@ def tune_performance_cart(data_type,data,output_path,cat_columns,trials):
     performance_cart.loc[i,'Dataset'] = data_type
     performance_cart.loc[i,'Nr_rows'] = len(data)
     performance_cart.loc[i,'Saved_model'] = model_name
-    performance_cart.loc[i,'Est_train_time'] = et - st
+    performance_cart.loc[i,'Train_time(in seconds)'] = et - st
     print("Performance dataframe has been filled and saved with current hyperparameter.")
     performance_cart.to_csv('performance_cart_'+str(unique_id)+'.csv',encoding='utf-8',index=False)
 

@@ -1,7 +1,9 @@
 import seaborn as sns
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import pandas as pd
 import numpy as np
+import os
 from sklearn.ensemble import IsolationForest
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
@@ -43,8 +45,7 @@ def create_boxplots(real_df,syn_df,datatype):
         plt.close()
     
 
-def create_kdeplots(real_df,syn_df,datatype):
-    
+def create_kdeplots(real_df,syn_df,datatype):    
     features = real_df.columns.to_list()
     df_num = real_df.select_dtypes(include='object').columns.to_list()
     real_df[df_num] = real_df[df_num].astype('int')
@@ -96,6 +97,20 @@ def create_pairplot(df):
     g.map_diag(sns.histplot)
     g.map_offdiag(sns.scatterplot)
     g.add_legend()
+
+def create_model_performance_plot(data_type,df,x,y,output_path):
+    os.chdir(output_path)
+    fig, ax = plt.subplots(figsize=(11,9))
+
+    df[["Model_type","id"]] = df.Saved_model.str.split("_",expand=True)
+
+    ax = sns.scatterplot(data=df,x=x,y=y,hue='Model_type')
+    ax.collections[0].set_sizes([200])
+    ax.set_title("Model performance plot for data "+str(data_type)+" between "+str(x)+" and "+str(y))
+    fig.savefig("lineplot_performance_"+str(x)+"_"+str(y)+".pdf")
+    plt.close()
+    os.chdir('..')
+    os.chdir('..')
 
 def find_best_clusters(df, max_K):
     clusters_centers = []
