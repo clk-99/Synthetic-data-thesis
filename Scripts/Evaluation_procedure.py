@@ -127,12 +127,11 @@ def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_t
             os.chdir('..')
             print(os.getcwd())
 
-    results.to_csv('../Data/'+data_type+'/metrics_SDG_'+data_type+'.csv',index_label='Index')          
     return results
 
 def select_best_model(data_type,results_df):
     print('The best performing model for dataset '+data_type+' equals... \n')
-    models_df = results_df.set_index('Model_type')
+    models_df = results_df.set_index('Saved_model')
     print(models_df)
     best_model = models_df['TabSynDex_score'].idxmax()
     print('Model: '+str(best_model))
@@ -166,7 +165,7 @@ def merge_models(data_type,metrics_df,data_path):
         temp_df = pd.concat([final_df,m_df],ignore_index=True)
         final_df = temp_df
     
-    temp_v2_df = pd.concat([final_df,metrics_df],ignore_index=True)
+    temp_v2_df = final_df.merge(metrics_df,how='left')
     print(temp_v2_df.head())
     final_df = temp_v2_df
 
@@ -252,7 +251,7 @@ if dataset:
         performance_df = evaluate_models(real_data,test_data,dataset,data_path,cat_vars,target_type[dataset],multi_target_bool[dataset])
         results_df = merge_models(dataset,performance_df,data_path)
     if metric_type == 'visuals':
-        result_path = data_folder + '/' + dataset + '/metrics_SDG_' + dataset + '.csv'
+        result_path = data_folder + '/' + dataset + '/final_results_SDG_' + dataset + '.csv'
         performance_df = pd.read_csv(result_path,index_col=0)
         best_SDG = select_best_model(dataset, performance_df)
         generate_visualize_best_SDG(real_data,cat_vars,str(best_SDG),dataset,data_path,visual_path)
