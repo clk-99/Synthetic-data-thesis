@@ -1,0 +1,2 @@
+Dataset,Nr_rows,Nr_epochs,Nr_layers,Batch_size,Hidden_layer_size_enc,Hidden_layer_size_dec,Embedding_dimension,Regularization_term,Saved_model,Train_time(in seconds)
+bank,32950.0,50.0,2.0,100.0,256.0,128.0,8.0,0.029,TVAE_hvvj8n.pkl,212893.11151210102
