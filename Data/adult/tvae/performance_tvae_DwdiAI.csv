@@ -1,0 +1,2 @@
+Dataset,Nr_rows,Nr_epochs,Nr_layers,Batch_size,Hidden_layer_size_enc,Hidden_layer_size_dec,Embedding_dimension,Regularization_term,Saved_model,Train_time(in seconds)
+adult,26048.0,50.0,2.0,300.0,128.0,64.0,16.0,0.045,TVAE_DwdiAI.pkl,175871.047932744
