@@ -1,13 +1,13 @@
 
 #ignore all .pkl files stored from models CTGAN and TVAE
-*.pkl
+#*.pkl
 
 #ignore all .rds files stored from R models ARF and CART
-*.rds
+#*.rds
 
 #ignore all .keep files (they are empty anyways)
 *.keep
 
 #ignore all data output files
-*.csv
+#*.csv
 
