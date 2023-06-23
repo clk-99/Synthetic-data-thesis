@@ -1,0 +1,2 @@
+Dataset,Nr_rows,Nr_epochs,Nr_layers,Batch_size,Hidden_layer_size_enc,Hidden_layer_size_dec,Embedding_dimension,Regularization_term,Saved_model,Train_time(in seconds)
+iris,120.0,80.0,2.0,500.0,8.0,256.0,128.0,0.013,TVAE_mxlHOv.pkl,611.673176894

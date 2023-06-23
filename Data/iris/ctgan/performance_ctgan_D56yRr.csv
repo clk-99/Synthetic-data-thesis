@@ -1,0 +1,2 @@
+Dataset,Nr_rows,Nr_epochs,Nr_layers,Batch_size,Generator_dimension,Discriminator_dimension,Embedding_dimension,Saved_model,Train_time(in seconds)
+iris,120.0,5.0,2.0,200.0,32.0,4.0,16.0,CTGAN_D56yRr.pkl,86.72727036900005

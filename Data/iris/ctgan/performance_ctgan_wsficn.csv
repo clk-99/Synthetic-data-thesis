@@ -1,0 +1,2 @@
+Dataset,Nr_rows,Nr_epochs,Nr_layers,Batch_size,Generator_dimension,Discriminator_dimension,Embedding_dimension,Saved_model,Est_train_time
+iris,120.0,20.0,1.0,100.0,256.0,8.0,32.0,CTGAN_wsficn.pkl,173.869880448

@@ -1,0 +1,2 @@
+Dataset,Nr_rows,Nr_epochs,Nr_layers,Batch_size,Hidden_layer_size_enc,Hidden_layer_size_dec,Embedding_dimension,Regularization_term,Saved_model,Train_time(in seconds)
+iris,120.0,20.0,1.0,400.0,32.0,4.0,64.0,0.037,TVAE_Cba3bS.pkl,4.866996882000002

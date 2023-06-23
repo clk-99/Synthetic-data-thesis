@@ -1,0 +1,2 @@
+Dataset,Nr_rows,Nr_epochs,Nr_layers,Batch_size,Hidden_layer_size_enc,Hidden_layer_size_dec,Embedding_dimension,Regularization_term,Saved_model,Est_train_time
+iris,120.0,35.0,2.0,100.0,64.0,128.0,8.0,0.037,TVAE_OGu50H.pkl,199.689995452

@@ -1,0 +1,2 @@
+Dataset,Nr_rows,Nr_epochs,Nr_layers,Batch_size,Hidden_layer_size_enc,Hidden_layer_size_dec,Embedding_dimension,Regularization_term,Saved_model,Est_train_time
+iris,120.0,35.0,2.0,400.0,256.0,128.0,16.0,0.037,TVAE_COCiHp.pkl,222.296171755
