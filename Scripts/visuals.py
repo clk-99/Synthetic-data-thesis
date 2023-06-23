@@ -98,8 +98,8 @@ def create_pairplot(df):
     g.map_offdiag(sns.scatterplot)
     g.add_legend()
 
-def create_model_performance_plot(data_type,df,x,y,output_path):
-    os.chdir(output_path)
+def create_model_performance_plot(data_type,df,x,y):
+    #os.chdir(output_path)
     fig, ax = plt.subplots(figsize=(11,9))
 
     df[["Model_type","id"]] = df.Saved_model.str.split("_",expand=True)
