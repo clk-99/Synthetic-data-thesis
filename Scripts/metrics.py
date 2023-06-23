@@ -85,24 +85,31 @@ def EStest(real_df,syn_df,cat_cols): #statistical test
     
     return mean_es
 
-def unique_values_check(real, fake):
-    missing_cols = set(real.columns.to_list()) - set(fake.columns.to_list())
+def unique_values_check(df1, df2):
+    missing_cols = set(df1.columns.to_list()) - set(df2.columns.to_list())
     print(missing_cols)
     for m in missing_cols:
-        fake[m] = 0
+        df2[m] = 0
 
-    return fake
+    return df2
 
-def MLefficiency(syn_df, test_df, cat_cols, target_type='class',multi=False): #own metric to test the performance of synthetic dataset    
+def MLefficiency(syn_df, test_df, cat_cols, target_var, target_type='class', multi=False): #own metric to test the performance of synthetic dataset    
     syn_data = numerical_encoding(syn_df, nominal_columns=cat_cols) #one-hot encoding of categorical variables
     test_data = numerical_encoding(test_df, nominal_columns=cat_cols)
-    
+    print(syn_data.shape)
+    print(test_data.shape)
     syn_data = unique_values_check(test_data, syn_data)
-    X_train = syn_data.iloc[:,:-1]
-    y_train = syn_data.iloc[:,-1].round(decimals=0)
+    test_data = unique_values_check(syn_data,test_data)
+    syn_data = syn_data[sorted(syn_data.columns)]
+    test_data = test_data[sorted(test_data.columns)]
 
-    X_test = test_data.iloc[:,:-1].round(decimals=0)
-    y_test = test_data.iloc[:,-1].round(decimals=0).values
+    print(syn_data.shape)
+    print(test_data.shape)
+    X_train = syn_data.loc[:,syn_data.columns!=target_var]
+    y_train = syn_data.loc[:,syn_data.columns==target_var].round(decimals=0).values.ravel()
+
+    X_test = test_data.loc[:,test_data.columns!=target_var].round(decimals=0)
+    y_test = test_data.loc[:,test_data.columns==target_var].round(decimals=0).values
     
     performance_metrics = {}
     if target_type == 'regr':

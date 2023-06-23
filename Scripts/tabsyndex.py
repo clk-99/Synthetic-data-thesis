@@ -10,7 +10,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.linear_model import Lasso, Ridge, ElasticNet, LogisticRegression
 from sklearn.preprocessing import PolynomialFeatures, MinMaxScaler
 import scipy.stats as ss
-from dython.nominal import associations, numerical_encoding
+from dython.nominal import associations
 
 
 def tabsyndex(real_data, fake_data, cat_cols, target_col, target_type):
@@ -18,16 +18,37 @@ def tabsyndex(real_data, fake_data, cat_cols, target_col, target_type):
   def mape (vector_a, vector_b):
     return abs(vector_a-vector_b)/abs(vector_a+1e-6)
   
+  def numerical_encoding(dataset,nominal_columns):
+    converted_dataset = pd.DataFrame()
+    
+    for col in dataset.columns:
+        if col not in nominal_columns:
+            converted_dataset.loc[:, col] = dataset[col]
+        else:
+            unique_values = pd.unique(dataset[col])
+            if len(unique_values) == 2:
+                (
+                    converted_dataset.loc[:, col],
+                    binary_columns_dict[col],
+                ) = pd.factorize(dataset[col])
+            else:
+                dummies = pd.get_dummies(dataset[col], prefix=col)
+                converted_dataset = pd.concat(
+                    [converted_dataset, dummies], axis=1
+                )
+    
+    return converted_dataset
+
   real_df = real_data.drop(cat_cols, axis=1)
   fake_df = fake_data.drop(cat_cols, axis=1)
 
   scaler = MinMaxScaler()
   real_temp = scaler.fit_transform(real_df)
-  real_temp = pd.DataFrame(real_temp, columns=real_df.columns)
+  real_temp = pd.DataFrame(real_temp, columns=real_df.columns.to_list())
   real_data_norm = pd.concat([real_temp,real_data[cat_cols]],axis=1)
-  real_data_norm = real_data_norm[real_data.columns]
+  real_data_norm = real_data_norm[real_data.columns.to_list()]
   fake_temp = scaler.transform(fake_df)
-  fake_temp = pd.DataFrame(fake_temp, columns=fake_df.columns)
+  fake_temp = pd.DataFrame(fake_temp, columns=fake_df.columns.to_list())
   cols = fake_temp.columns.to_list() + cat_cols
   cols_dict = {}
   i = 0
@@ -36,16 +57,17 @@ def tabsyndex(real_data, fake_data, cat_cols, target_col, target_type):
     i += 1
   fake_data_norm = pd.concat([fake_temp,fake_data[cat_cols].reset_index(drop=True)],axis=1,ignore_index=True)
   fake_data_norm = fake_data_norm.rename(cols_dict, axis='columns')
-  fake_data_norm = fake_data_norm[fake_data.columns]
-  
+  fake_data_norm = fake_data_norm[fake_data.columns.to_list()]
+
   #apply one hot encoding to both real and synthetic datasets for all categorical features
   real = numerical_encoding(real_data_norm, nominal_columns=cat_cols)
-  real = real[sorted(real.columns)]
+  real = real[sorted(real.columns.to_list())]
   fake = numerical_encoding(fake_data_norm, nominal_columns=cat_cols)
   missing_cols = set(real.columns.to_list()) - set(fake.columns.to_list())
   for m in missing_cols:
     fake[m] = 0
-  fake = fake[sorted(fake.columns)]
+  fake = fake[sorted(fake.columns.to_list())]
+
 
   def basic_stats(cat_cols):
     #aanpassen op alleen numerieke kolommen van dataset

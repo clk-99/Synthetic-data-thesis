@@ -39,6 +39,14 @@ args = parser.parse_args()
 data_folder = '../Data' 
 dataset = args.dataset
 metric_type = args.metric_type
+
+target_vars = {
+    "iris": "class",
+    "bank": "y",
+    "metro": "traffic_volume",
+    "adult": "income",
+    "covertype": "Cover_Type"
+}
 target_type = {
     "iris": "class",
     "bank": "class",
@@ -61,7 +69,7 @@ cat_columns_dict = {
     "covertype": ['Soil_type','WArea','Cover_Type']
 }
 
-def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_type='class',multi_target=False):
+def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_var,target_type='class',multi_target=False):
     models = ['arf','cart','ctgan','tvae']
     results = pd.DataFrame()
     i = 0
@@ -95,10 +103,9 @@ def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_t
                     for c in cat_columns:
                         synthetic_data[c] = synthetic_data[c].astype(str).str.split('.').str[0]
                     print(synthetic_data.shape)
-                    print(test_data.head())
-                    scores, missing_unique = ts.tabsyndex(real_data, synthetic_data, cat_cols=cat_columns,target_col=real_data.columns.to_list()[-1],target_type=target_type)
+                    scores, missing_unique = ts.tabsyndex(real_data, synthetic_data, cat_cols=cat_columns,target_col=target_var,target_type=target_type)
                     print(scores)
-                    ml_metrics = metrics.MLefficiency(synthetic_data, test_data, cat_columns, target_type=target_type, multi=multi_target)
+                    ml_metrics = metrics.MLefficiency(synthetic_data, test_data, cat_columns, target_var, target_type=target_type, multi=multi_target)
                     print(ml_metrics)
                     mean_HD = metrics.hellinger_distance(real_data,synthetic_data)
                     print(mean_HD)
@@ -244,10 +251,11 @@ if dataset:
     data_path = data_folder + '/' + dataset + '/'
     visual_path = data_folder + '/' + dataset + '/visuals/'
     cat_vars = cat_columns_dict[dataset]
+    target_col = target_vars[dataset]
     real_data = pd.read_csv(path_orig_data,index_col=0,dtype={col:'object' for col in cat_vars})
     test_data = pd.read_csv(path_test_data,index_col=0,dtype={col:'object' for col in cat_vars})
     if metric_type == 'metrics':
-        performance_df = evaluate_models(real_data,test_data,dataset,data_path,cat_vars,target_type[dataset],multi_target_bool[dataset])
+        performance_df = evaluate_models(real_data,test_data,dataset,data_path,cat_vars,target_col,target_type[dataset],multi_target_bool[dataset])
         results_df = merge_models(dataset,performance_df,data_path)
     if metric_type == 'visuals':
         result_path = data_folder + '/' + dataset + '/final_results_SDG_' + dataset + '.csv'
