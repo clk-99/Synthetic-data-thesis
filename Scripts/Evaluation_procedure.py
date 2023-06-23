@@ -82,7 +82,7 @@ def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_v
             for result in it:
                 print(result.name)  
                 if re.search('.keep|.csv',result.name):
-                    #to skip empty.keep files and break current for loop.
+                    #to skip empty.keep and .csv files and break current for loop.
                     print('Incorrect file to proceed in current directory')
                     
                     continue
@@ -172,6 +172,9 @@ def merge_models(data_type,metrics_df,data_path):
         temp_df = pd.concat([final_df,m_df],ignore_index=True)
         final_df = temp_df
     
+    if 'Est_train_time' in final_df.columns.to_list(): 
+        final_df['Train_time(in seconds)'] = final_df['Train_time(in seconds)'].combine_first(final_df['Est_train_time'])
+        final_df.drop('Est_train_time',inplace=True)
     temp_v2_df = final_df.merge(metrics_df,how='left')
     print(temp_v2_df.head())
     final_df = temp_v2_df
@@ -260,6 +263,7 @@ if dataset:
     if metric_type == 'visuals':
         result_path = data_folder + '/' + dataset + '/final_results_SDG_' + dataset + '.csv'
         performance_df = pd.read_csv(result_path,index_col=0)
+        print(performance_df.columns)
         best_SDG = select_best_model(dataset, performance_df)
         generate_visualize_best_SDG(real_data,cat_vars,str(best_SDG),dataset,data_path,visual_path)
-        vs.create_model_performance_plot(dataset, performance_df, 'Train_time(in seconds)', 'TabSynDex_score', visual_path)
+        vs.create_model_performance_plot(dataset, performance_df, 'Train_time(in seconds)', 'TabSynDex_score') #, visual_path)
