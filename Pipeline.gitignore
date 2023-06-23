@@ -10,4 +10,5 @@
 
 #ignore all data output files
 #*.csv
-
+*_TRAIN_SET.csv
+*_TEST_SET.csv
