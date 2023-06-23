@@ -11,7 +11,7 @@ from sklearn.decomposition import PCA
 from sklearn.metrics import  roc_auc_score, accuracy_score, precision_score, recall_score, f1_score, explained_variance_score, mean_squared_error, r2_score
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 
-from dython.nominal import numerical_encoding
+
 
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -93,11 +93,26 @@ def unique_values_check(df1, df2):
 
     return df2
 
+def numerical_encoding(dataset,nominal_columns):
+    converted_dataset = pd.DataFrame()
+    
+    for col in dataset.columns:
+        if col not in nominal_columns:
+            converted_dataset.loc[:, col] = dataset[col]
+        else:
+            unique_values = pd.unique(dataset[col])
+            dummies = pd.get_dummies(dataset[col], prefix=col)
+            converted_dataset = pd.concat(
+                [converted_dataset, dummies], axis=1
+            )
+    
+    return converted_dataset
+
 def MLefficiency(syn_df, test_df, cat_cols, target_var, target_type='class', multi=False): #own metric to test the performance of synthetic dataset    
     syn_data = numerical_encoding(syn_df, nominal_columns=cat_cols) #one-hot encoding of categorical variables
     test_data = numerical_encoding(test_df, nominal_columns=cat_cols)
-    print(syn_data.shape)
-    print(test_data.shape)
+    print(syn_data.head())
+    print(test_data.head())
     syn_data = unique_values_check(test_data, syn_data)
     test_data = unique_values_check(syn_data,test_data)
     syn_data = syn_data[sorted(syn_data.columns)]

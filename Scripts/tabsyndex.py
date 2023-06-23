@@ -27,16 +27,10 @@ def tabsyndex(real_data, fake_data, cat_cols, target_col, target_type):
             converted_dataset.loc[:, col] = dataset[col]
         else:
             unique_values = pd.unique(dataset[col])
-            if len(unique_values) == 2:
-                (
-                    converted_dataset.loc[:, col],
-                    binary_columns_dict[col],
-                ) = pd.factorize(dataset[col])
-            else:
-                dummies = pd.get_dummies(dataset[col], prefix=col)
-                converted_dataset = pd.concat(
-                    [converted_dataset, dummies], axis=1
-                )
+            dummies = pd.get_dummies(dataset[col], prefix=col)
+            converted_dataset = pd.concat(
+                [converted_dataset, dummies], axis=1
+            )
     
     return converted_dataset
 
@@ -62,8 +56,10 @@ def tabsyndex(real_data, fake_data, cat_cols, target_col, target_type):
 
   #apply one hot encoding to both real and synthetic datasets for all categorical features
   real = numerical_encoding(real_data_norm, nominal_columns=cat_cols)
+  #real.drop(target_col,inplace=True)
   real = real[sorted(real.columns.to_list())]
   fake = numerical_encoding(fake_data_norm, nominal_columns=cat_cols)
+  #fake.drop(target_col,inplace=True)
   missing_cols = set(real.columns.to_list()) - set(fake.columns.to_list())
   for m in missing_cols:
     fake[m] = 0
@@ -172,6 +168,7 @@ def tabsyndex(real_data, fake_data, cat_cols, target_col, target_type):
     return score
 
   def pmse():
+    
     data = real.append(fake, ignore_index=True)
     data['target'] = [0]*len(real_data)+[1]*len(fake_data)
 
