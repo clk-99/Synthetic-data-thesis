@@ -103,13 +103,16 @@ def MLefficiency(syn_df, test_df, cat_cols, target_var, target_type='class', mul
     syn_data = syn_data[sorted(syn_data.columns)]
     test_data = test_data[sorted(test_data.columns)]
 
-    print(syn_data.shape)
-    print(test_data.shape)
-    X_train = syn_data.loc[:,syn_data.columns!=target_var]
-    y_train = syn_data.loc[:,syn_data.columns==target_var].round(decimals=0).values.ravel()
+    all_columns = syn_data.columns.to_list()
+    target_columns = list(filter(lambda x:target_var in x,all_columns))
+    X_train = syn_data.loc[:,~syn_data.columns.isin(target_columns)].round(decimals=0)
+    if target_type == 'class':
+        y_train = syn_data[target_columns].round(decimals=0).values
+    else:
+        y_train = syn_data[target_columns].round(decimals=0).values.ravel()
 
-    X_test = test_data.loc[:,test_data.columns!=target_var].round(decimals=0)
-    y_test = test_data.loc[:,test_data.columns==target_var].round(decimals=0).values
+    X_test = test_data.loc[:,~test_data.columns.isin(target_columns)].round(decimals=0)
+    y_test = test_data[target_columns].round(decimals=0).values
     
     performance_metrics = {}
     if target_type == 'regr':
