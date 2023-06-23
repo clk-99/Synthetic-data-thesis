@@ -19,6 +19,7 @@ def tabsyndex(real_data, fake_data, cat_cols, target_col, target_type):
     return abs(vector_a-vector_b)/abs(vector_a+1e-6)
   
   def numerical_encoding(dataset,nominal_columns):
+    binary_columns_dict = dict()
     converted_dataset = pd.DataFrame()
     
     for col in dataset.columns:
