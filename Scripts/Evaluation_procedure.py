@@ -174,7 +174,8 @@ def merge_models(data_type,metrics_df,data_path):
     
     if 'Est_train_time' in final_df.columns.to_list(): 
         final_df['Train_time(in seconds)'] = final_df['Train_time(in seconds)'].combine_first(final_df['Est_train_time'])
-        final_df.drop('Est_train_time',inplace=True)
+        print(final_df.head())
+        #final_df.drop('Est_train_time',inplace=True)
     temp_v2_df = final_df.merge(metrics_df,how='left')
     print(temp_v2_df.head())
     final_df = temp_v2_df
