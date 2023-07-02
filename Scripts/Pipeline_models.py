@@ -1,5 +1,5 @@
 #import packages for pipeline
-import sdv
+#import sdv
 import pandas as pd
 import numpy as np
 import math
@@ -11,12 +11,13 @@ from distutils.util import strtobool
 
 #import self-written functions
 import performance_models as pm
-import prep_data 
-import visuals
+import prep_data
+from synthcity import * 
+#import visuals
 
 import os
 from pathlib import Path
-from sdv.metadata import SingleTableMetadata
+#from sdv.metadata import SingleTableMetadata
 
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import StandardScaler
@@ -56,21 +57,22 @@ if dataset:
     else:
         target = cat_columns[-1]
     real_train_data, table_dict = prep_data.main(data_path,dataset,cat_columns,target,outliers_bool)
-    table_metadata = SingleTableMetadata.load_from_dict(table_dict)
+    #table_metadata = SingleTableMetadata.load_from_dict(table_dict)
     output_path = data_folder + '/' + dataset + '/' + model
-    if model == 'ctgan':
-        synthetic_model = pm.tune_performance_ctgan(dataset,real_train_data,table_metadata,output_path,trials)
-    elif model == 'tvae':
-        synthetic_tvae = pm.tune_performance_tvae(dataset,real_train_data,table_metadata,output_path,trials)
-    elif model == 'arf':
+    if model == 'arf':
         synthetic_arf = pm.tune_performance_arf(dataset,real_train_data,str(output_path),cat_columns,trials)
     elif model == 'cart':
         synthetic_cart = pm.tune_performance_cart(dataset,real_train_data,str(output_path),cat_columns,trials)
-    else:
-        print('d')
+    elif model == 'ctgan':
+        #synthetic_model = pm.tune_performance_ctgan(dataset,real_train_data,table_metadata,output_path,trials)
+        synthetic_ctgan = pm.tune_performance_ctgan(dataset,real_train_data,target,output_path,trials)
+    elif model == 'tvae':
+        #synthetic_tvae = pm.tune_performance_tvae(dataset,real_train_data,table_metadata,output_path,trials)
+        synthetic_tvae = pm.tune_performance_tvae(dataset,real_train_data,target,output_path,trials)
+    elif model == 'tabddpm':
+        synthetic_ddpm = pm.tune_performance_ddpm(dataset,real_train_data,target,output_path,trials)
 
 
-#toevoegen van use case WW naar Bijstand
 #wel opslaan onder andere naam (mag niet op de Github)
 #probeer een kleine mini set aan hyperparameters
 #input variabelen meenemen in de code: output path en dictionary voor categorische kolommen

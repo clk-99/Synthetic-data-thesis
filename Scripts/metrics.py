@@ -1,4 +1,6 @@
 import pandas as pd
+from pandas.api.types import is_string_dtype,is_numeric_dtype,is_float_dtype
+
 import numpy as np
 import math
 import scipy.stats as ss
@@ -108,7 +110,24 @@ def numerical_encoding(dataset,nominal_columns):
     
     return converted_dataset
 
+def check_dtype_target(data,target):
+    if is_string_dtype(data[target]):
+        print('Target variable is casted as string and converted now...')
+        data[target] = pd.to_numeric(data[target])
+        final_arr = data[target].to_list()
+        print(final_arr)
+
+        return data
+    
+    else:
+        print('Target variable is already numeric!')
+    
+
 def MLefficiency(syn_df, test_df, cat_cols, target_var, target_type='class', multi=False): #own metric to test the performance of synthetic dataset    
+    if not multi:
+        if target_var in cat_cols:
+            cat_cols.remove(target_var)
+   
     syn_data = numerical_encoding(syn_df, nominal_columns=cat_cols) #one-hot encoding of categorical variables
     test_data = numerical_encoding(test_df, nominal_columns=cat_cols)
     print(syn_data.head())
@@ -121,20 +140,20 @@ def MLefficiency(syn_df, test_df, cat_cols, target_var, target_type='class', mul
     all_columns = syn_data.columns.to_list()
     target_columns = list(filter(lambda x:target_var in x,all_columns))
     X_train = syn_data.loc[:,~syn_data.columns.isin(target_columns)].round(decimals=0)
+
     if target_type == 'class':
         y_train = syn_data[target_columns].round(decimals=0).values
     else:
         y_train = syn_data[target_columns].round(decimals=0).values.ravel()
 
     X_test = test_data.loc[:,~test_data.columns.isin(target_columns)].round(decimals=0)
-    y_test = test_data[target_columns].round(decimals=0).values
-    
+    y_test = test_data[target_columns].round(decimals=0).values        
+        
     performance_metrics = {}
     if target_type == 'regr':
         rf = RandomForestRegressor()
         rf.fit(X_train,y_train)
         y_pred = rf.predict(X_test)
-
         performance_metrics['Explained_variance'] = explained_variance_score(y_test, y_pred)
         performance_metrics['Mean_squared_error'] = mean_squared_error(y_test, y_pred)
         performance_metrics['R^2_score'] = r2_score(y_test, y_pred)
@@ -142,10 +161,11 @@ def MLefficiency(syn_df, test_df, cat_cols, target_var, target_type='class', mul
         rf = RandomForestClassifier()
         rf.fit(X_train,y_train)
         y_pred = rf.predict(X_test)
+        print(y_pred.shape)
 
         if multi: #multi-class classification
-            performance_metrics['AUC'] = roc_auc_score(y_test, y_pred,multi_class='ovr')
-            performance_metrics['F1_score'] = f1_score(y_test, y_pred,average='weighted')
+            performance_metrics['AUC'] = roc_auc_score(y_test.T, y_pred.T,multi_class='ovr')
+            performance_metrics['F1_score'] = f1_score(y_test.T, y_pred.T,average='weighted')
         else: #binary classification
             performance_metrics['AUC'] = roc_auc_score(y_test, y_pred)
             performance_metrics['F1_score'] = f1_score(y_test, y_pred)

@@ -10,25 +10,33 @@ import tabsyndex as ts
 import metrics  
 import visuals as vs
 from pathlib import Path
-from sdv.single_table import CTGANSynthesizer, TVAESynthesizer
+
+#import own libraries
+from synthcity import *
+from synthcity.plugins import Plugins
+from synthcity.utils.serialization import load_from_file
 
 import os
 
 #os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2' #adjust to the version on LISA!!
+#os.environ['R_HOME'] = 'C:\Program Files\R\R-3.5.2' #private laptop R version
 
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri
 from rpy2.robjects.conversion import localconverter
 
 from rpy2.robjects.packages import importr
+from rpy2.robjects.vectors import StrVector
 
-base = importr('base')
-r = ro.r
-r['source']('load_ARF.R')
-r['source']('load_CART.R')
+# utils = importr('utils')
+# package_names = ('arf','synthpop')
+# utils.install_packages(StrVector(package_names))
+# r = ro.r
+# r['source']('load_ARF.R')
+# r['source']('load_CART.R')
 
-load_arf_r = ro.globalenv['load_arf']
-load_cart_r = ro.globalenv['load_cart']
+# load_arf_r = ro.globalenv['load_arf']
+# load_cart_r = ro.globalenv['load_cart']
 
 #start pipeline
 parser = argparse.ArgumentParser(description='Evaluate the performance for each model per dataset using TabSynDex')
@@ -70,7 +78,7 @@ cat_columns_dict = {
 }
 
 def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_var,target_type='class',multi_target=False):
-    models = ['arf','cart','ctgan','tvae']
+    models = ['ctgan','tvae','tabddpm'] #'arf','cart', 
     results = pd.DataFrame()
     i = 0
     for m in models:
@@ -83,8 +91,7 @@ def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_v
                 print(result.name)  
                 if re.search('.keep|.csv',result.name):
                     #to skip empty.keep and .csv files and break current for loop.
-                    print('Incorrect file to proceed in current directory')
-                    
+                    print('Incorrect file to proceed in current directory')                    
                     continue
                 else:
                     if m == 'arf':
@@ -92,14 +99,14 @@ def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_v
                         
                     elif m == 'cart':
                         synthetic_data = reload_CART(real_data,cat_columns,result.name)
-                        
-                    elif m == 'ctgan': 
-                        #reload ctgan model
-                        synthetic_data = reload_CTGAN(real_data,result.name)
-
-                    elif m == 'tvae': #tvae model
-                        synthetic_data = reload_TVAE(real_data,result.name)
                     
+                    else:
+                        os.chdir('..')
+                        os.chdir('..')
+                        result_path = output_path + '/' + result.name
+                        print(result_path)
+                        synthetic_data = reload_generative_models(real_data,result_path)
+                        os.chdir(output_path)
                     for c in cat_columns:
                         synthetic_data[c] = synthetic_data[c].astype(str).str.split('.').str[0]
                     print(synthetic_data.shape)
@@ -165,7 +172,7 @@ def merge_performance_dfs(data_type,data_path,model):
     return model_df
 
 def merge_models(data_type,metrics_df,data_path):
-    models = ['arf','cart','ctgan','tvae']
+    models = ['arf','cart','ctgan','tvae','tabddpm']
     final_df = pd.DataFrame()
     for m in models:
         m_df = merge_performance_dfs(data_type,data_path,m)
@@ -184,40 +191,34 @@ def merge_models(data_type,metrics_df,data_path):
 
     return final_df
 
-def reload_ARF(df,cat_vars,result):
-    with localconverter(ro.default_converter + pandas2ri.converter):
-        df_r = ro.conversion.py2rpy(df)
+# def reload_ARF(df,cat_vars,result):
+#     with localconverter(ro.default_converter + pandas2ri.converter):
+#         df_r = ro.conversion.py2rpy(df)
 
-    synthetic_df_r = load_arf_r(df_r,cat_vars,str(result))
+#     synthetic_df_r = load_arf_r(df_r,cat_vars,str(result))
 
-    with localconverter(ro.default_converter + pandas2ri.converter):
-        synthetic_data = ro.conversion.rpy2py(synthetic_df_r)
+#     with localconverter(ro.default_converter + pandas2ri.converter):
+#         synthetic_data = ro.conversion.rpy2py(synthetic_df_r)
 
-    return synthetic_data
+#     return synthetic_data
 
-def reload_CART(df,cat_vars,result):
-    with localconverter(ro.default_converter + pandas2ri.converter):
-        df_r = ro.conversion.py2rpy(df)
+# def reload_CART(df,cat_vars,result):
+#     with localconverter(ro.default_converter + pandas2ri.converter):
+#         df_r = ro.conversion.py2rpy(df)
 
-    synthetic_df_r = load_cart_r(df_r,cat_vars,str(result))
+#     synthetic_df_r = load_cart_r(df_r,cat_vars,str(result))
     
-    with localconverter(ro.default_converter + pandas2ri.converter):
-        synthetic_data = ro.conversion.rpy2py(synthetic_df_r)
+#     with localconverter(ro.default_converter + pandas2ri.converter):
+#         synthetic_data = ro.conversion.rpy2py(synthetic_df_r)
+
+#     return synthetic_data
+
+def reload_generative_models(df,result):
+    reloaded_model = load_from_file(result)
+    synthetic_data = reloaded_model.generate(count=len(df)).dataframe()
 
     return synthetic_data
-
-def reload_CTGAN(df,result):
-    ctgan_model = CTGANSynthesizer.load(filepath=result)
-    synthetic_data = ctgan_model.sample(num_rows=len(df))
-
-    return synthetic_data
-
-def reload_TVAE(df,result):
-    tvae_model = TVAESynthesizer.load(filepath=result)
-    synthetic_data = tvae_model.sample(num_rows=len(df))
-
-    return synthetic_data
-
+    
 def generate_visualize_best_SDG(real_df,cat_columns,sdg,dataset,data_path,output_path):
     model = sdg.split('.')[0].split('_')[0]
     print(model)

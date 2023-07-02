@@ -5,11 +5,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 import zipfile
 
-#import libraries for plotting
-import matplotlib.pyplot as plt
-import seaborn as sns
-#%matplotlib inline
-
 #import self-written library
 import visuals
 
