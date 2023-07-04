@@ -9,15 +9,16 @@ The use case has originally nearly 2 million observations where its information 
 
 ## Part 2: Generating synthetic data from four public datasets using LISA.
 Four example datasets:
-1. Covertype: around half million observations.
-2. Adult
-3. Bank
-4. Metro
+1. Iris as an initial experiment dataset.
+2. Covertype: around half million observations.
+3. Adult
+4. Bank
+5. Metro
 
 # Experimental set-up
 Two seperate researches will run in parallel and apply the following techniques:
 - Decision tree based models: Adversarial Random Forest & CART
-- Deep generative models: GAN, VAE & DDPM
+- Deep generative models: CTGAN, TVAE & TABDDPM
 
 The evaluation procedure is similar for both and contains the following metrics:
 - Applying Machine Learning model to both original and synthetic data and compare performance.
@@ -28,7 +29,16 @@ The evaluation procedure is similar for both and contains the following metrics:
 ## How does the pipeline code work?
 The pipeline works in two steps:
 1. First, for each dataset, it is important that
-
+  ``` bash
+  python Pipeline_models.py [dataset] [model] [nr_trials] [outliers]
+  ```
+2. Second
+  ``` bash
+  python Evaluation_procedure.py [dataset] [metrics|visuals]
+  ```
+  ``` bash
+  python Evaluation_procedure.py [dataset] 
+  ```
 ## How to add your own data?
 
 ## How to structure your own repository?
@@ -36,7 +46,7 @@ The pipeline works in two steps:
 # Requirements
 
 ## What type of data can be used?
-Tabular data consisting of numerical and categorical variables only. These may contain strings, numbers and characters. 
+Tabular data consisting of numerical and categorical variables only. These may contain strings, numbers and characters. The pipeline already prepares the dataset for each model for you and works with missing values as well. 
 
 ## In what format is the data permitted?
 The data can only be added as .csv files to the repository, where each row can either be comma separated or semicolon. 
