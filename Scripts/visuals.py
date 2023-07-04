@@ -109,9 +109,31 @@ def create_model_performance_plot(data_type,df,x,y):
     ax.set_title("Model performance plot for data "+str(data_type)+" between "+str(x)+" and "+str(y))
     fig.savefig("lineplot_performance_"+str(x)+"_"+str(y)+".pdf")
     plt.close()
-    os.chdir('..')
-    os.chdir('..')
 
+def create_arf_performance_plot(data_type,df,x,y):
+    #os.chdir(output_path)
+    fig, ax = plt.subplots(figsize=(11,9))
+
+    df[["Model_type","id"]] = df.Saved_model.str.split("_",expand=True)
+    df = df[df["Model_type"]=='ARF']
+    ax = sns.scatterplot(data=df,x=x,y=y,hue='Model_type')
+    ax.collections[0].set_sizes([200])
+    ax.set_title("ARF performance plot for data "+str(data_type)+" between "+str(x)+" and "+str(y))
+    fig.savefig("lineplot_performance_"+str(x)+"_"+str(y)+".pdf")
+    plt.close()
+
+def create_dgn_performance_plot(data_type,model,df,x,y):
+    #os.chdir(output_path)
+    fig, ax = plt.subplots(figsize=(11,9))
+
+    df[["Model_type","id"]] = df.Saved_model.str.split("_",expand=True)
+    df = df[df["Model_type"]==model]
+    ax = sns.scatterplot(data=df,x=x,y=y,hue='Model_type')
+    ax.collections[0].set_sizes([200])
+    ax.set_title(str(model)+" performance plot for data "+str(data_type)+" between "+str(x)+" and "+str(y))
+    fig.savefig("lineplot_performance_"+str(x)+"_"+str(y)+".pdf")
+    plt.close()
+    
 def find_best_clusters(df, max_K):
     clusters_centers = []
     k_values = []

@@ -10,33 +10,25 @@ import tabsyndex as ts
 import metrics  
 import visuals as vs
 from pathlib import Path
-
-#import own libraries
-from synthcity import *
-from synthcity.plugins import Plugins
-from synthcity.utils.serialization import load_from_file
+from sdv.single_table import CTGANSynthesizer, TVAESynthesizer
 
 import os
 
 #os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2' #adjust to the version on LISA!!
-#os.environ['R_HOME'] = 'C:\Program Files\R\R-3.5.2' #private laptop R version
 
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri
 from rpy2.robjects.conversion import localconverter
 
 from rpy2.robjects.packages import importr
-from rpy2.robjects.vectors import StrVector
 
-# utils = importr('utils')
-# package_names = ('arf','synthpop')
-# utils.install_packages(StrVector(package_names))
-# r = ro.r
-# r['source']('load_ARF.R')
-# r['source']('load_CART.R')
+base = importr('base')
+r = ro.r
+r['source']('load_ARF.R')
+r['source']('load_CART.R')
 
-# load_arf_r = ro.globalenv['load_arf']
-# load_cart_r = ro.globalenv['load_cart']
+load_arf_r = ro.globalenv['load_arf']
+load_cart_r = ro.globalenv['load_cart']
 
 #start pipeline
 parser = argparse.ArgumentParser(description='Evaluate the performance for each model per dataset using TabSynDex')
@@ -78,7 +70,7 @@ cat_columns_dict = {
 }
 
 def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_var,target_type='class',multi_target=False):
-    models = ['ctgan','tvae','tabddpm'] #'arf','cart', 
+    models = ['arf','cart','ctgan','tvae','tabddpm']
     results = pd.DataFrame()
     i = 0
     for m in models:
@@ -99,27 +91,27 @@ def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_v
                         
                     elif m == 'cart':
                         synthetic_data = reload_CART(real_data,cat_columns,result.name)
+                        
+                    elif m == 'ctgan': 
+                        #reload ctgan model
+                        synthetic_data = reload_CTGAN(real_data,result.name)
+
+                    elif m == 'tvae': #tvae model
+                        synthetic_data = reload_TVAE(real_data,result.name)
                     
-                    else:
-                        os.chdir('..')
-                        os.chdir('..')
-                        result_path = output_path + '/' + result.name
-                        print(result_path)
-                        synthetic_data = reload_generative_models(real_data,result_path)
-                        os.chdir(output_path)
                     for c in cat_columns:
                         synthetic_data[c] = synthetic_data[c].astype(str).str.split('.').str[0]
+                    
                     print(synthetic_data.shape)
-                    scores, missing_unique = ts.tabsyndex(real_data, synthetic_data, cat_cols=cat_columns,target_col=target_var,target_type=target_type)
+                    scores, missing_unique = ts.tabsyndex(real_data, synthetic_data, cat_cols=cat_columns,target_col=target_var,target_type=target_type) #,multi=multi_target)
                     print(scores)
                     ml_metrics = metrics.MLefficiency(synthetic_data, test_data, cat_columns, target_var, target_type=target_type, multi=multi_target)
                     print(ml_metrics)
                     mean_HD = metrics.hellinger_distance(real_data,synthetic_data)
                     print(mean_HD)
-                    mean_KS = metrics.KStest(real_data, synthetic_data, cat_columns)
+                    mean_KS = metrics.KStest(real_data, synthetic_data, cat_columns, target_var)
                     print(mean_KS)
-                    #mean_ES = metrics.EStest(real_data, synthetic_data, cat_columns)
-                    #print(mean_ES)
+                  
 
                     results.loc[i,'Saved_model'] = result.name
                     results.loc[i,'Dataset'] = data_type
@@ -132,7 +124,6 @@ def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_v
                     results.loc[i,'Missing_unique_values'] = missing_unique
                     results.loc[i,'mean_Hellinger_Distance'] = mean_HD
                     results.loc[i,'mean_Kolmogorov_Smirnov_test'] = mean_KS
-                    #results.loc[i,'mean_Epps_Singleton_test'] = mean_ES
                     for metric in ml_metrics:
                         results.loc[i,metric] = ml_metrics[metric]
                     i+=1
@@ -191,34 +182,40 @@ def merge_models(data_type,metrics_df,data_path):
 
     return final_df
 
-# def reload_ARF(df,cat_vars,result):
-#     with localconverter(ro.default_converter + pandas2ri.converter):
-#         df_r = ro.conversion.py2rpy(df)
+def reload_ARF(df,cat_vars,result):
+    with localconverter(ro.default_converter + pandas2ri.converter):
+        df_r = ro.conversion.py2rpy(df)
 
-#     synthetic_df_r = load_arf_r(df_r,cat_vars,str(result))
+    synthetic_df_r = load_arf_r(df_r,cat_vars,str(result))
 
-#     with localconverter(ro.default_converter + pandas2ri.converter):
-#         synthetic_data = ro.conversion.rpy2py(synthetic_df_r)
-
-#     return synthetic_data
-
-# def reload_CART(df,cat_vars,result):
-#     with localconverter(ro.default_converter + pandas2ri.converter):
-#         df_r = ro.conversion.py2rpy(df)
-
-#     synthetic_df_r = load_cart_r(df_r,cat_vars,str(result))
-    
-#     with localconverter(ro.default_converter + pandas2ri.converter):
-#         synthetic_data = ro.conversion.rpy2py(synthetic_df_r)
-
-#     return synthetic_data
-
-def reload_generative_models(df,result):
-    reloaded_model = load_from_file(result)
-    synthetic_data = reloaded_model.generate(count=len(df)).dataframe()
+    with localconverter(ro.default_converter + pandas2ri.converter):
+        synthetic_data = ro.conversion.rpy2py(synthetic_df_r)
 
     return synthetic_data
+
+def reload_CART(df,cat_vars,result):
+    with localconverter(ro.default_converter + pandas2ri.converter):
+        df_r = ro.conversion.py2rpy(df)
+
+    synthetic_df_r = load_cart_r(df_r,cat_vars,str(result))
     
+    with localconverter(ro.default_converter + pandas2ri.converter):
+        synthetic_data = ro.conversion.rpy2py(synthetic_df_r)
+
+    return synthetic_data
+
+def reload_CTGAN(df,result):
+    ctgan_model = CTGANSynthesizer.load(filepath=result)
+    synthetic_data = ctgan_model.sample(num_rows=len(df))
+
+    return synthetic_data
+
+def reload_TVAE(df,result):
+    tvae_model = TVAESynthesizer.load(filepath=result)
+    synthetic_data = tvae_model.sample(num_rows=len(df))
+
+    return synthetic_data
+
 def generate_visualize_best_SDG(real_df,cat_columns,sdg,dataset,data_path,output_path):
     model = sdg.split('.')[0].split('_')[0]
     print(model)
@@ -269,3 +266,7 @@ if dataset:
         best_SDG = select_best_model(dataset, performance_df)
         generate_visualize_best_SDG(real_data,cat_vars,str(best_SDG),dataset,data_path,visual_path)
         vs.create_model_performance_plot(dataset, performance_df, 'Train_time(in seconds)', 'TabSynDex_score') #, visual_path)
+        #os.chdir(visual_path)
+        vs.create_dgn_performance_plot(dataset, 'CTGAN', performance_df, 'Train_time(in seconds)', 'Nr_epochs')
+        vs.create_dgn_performance_plot(dataset, 'TVAE', performance_df, 'Train_time(in seconds)', 'Nr_epochs')
+        vs.create_arf_performance_plot(dataset, performance_df, 'Train_time(in seconds)', 'Nr_trees')
