@@ -70,7 +70,7 @@ cat_columns_dict = {
 }
 
 def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_var,target_type='class',multi_target=False):
-    models = ['arf','cart','ctgan','tvae','tabddpm']
+    models = ['arf','cart'] #,'ctgan','tvae','tabddpm' 
     results = pd.DataFrame()
     i = 0
     for m in models:
@@ -102,35 +102,41 @@ def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_v
                     for c in cat_columns:
                         synthetic_data[c] = synthetic_data[c].astype(str).str.split('.').str[0]
                     
-                    print(synthetic_data.shape)
-                    scores, missing_unique = ts.tabsyndex(real_data, synthetic_data, cat_cols=cat_columns,target_col=target_var,target_type=target_type) #,multi=multi_target)
-                    print(scores)
-                    ml_metrics = metrics.MLefficiency(synthetic_data, test_data, cat_columns, target_var, target_type=target_type, multi=multi_target)
-                    print(ml_metrics)
-                    mean_HD = metrics.hellinger_distance(real_data,synthetic_data)
-                    print(mean_HD)
-                    mean_KS = metrics.KStest(real_data, synthetic_data, cat_columns, target_var)
-                    print(mean_KS)
-                  
+                    real_target_var_uniq = real_data[target_var].unique().tolist()
+                    syn_target_var_uniq = synthetic_data[target_var].unique().tolist()
+                    if set(real_target_var_uniq) == set(syn_target_var_uniq):
+                        print(synthetic_data.shape)
+                        scores, missing_unique = ts.tabsyndex(real_data, synthetic_data, cat_cols=cat_columns,target_col=target_var,target_type=target_type) #,multi=multi_target)
+                        print(scores)
+                        ml_metrics = metrics.MLefficiency(synthetic_data, test_data, cat_columns, target_var, target_type=target_type, multi=multi_target)
+                        print(ml_metrics)
+                        mean_HD = metrics.hellinger_distance(real_data,synthetic_data)
+                        print(mean_HD)
+                        mean_KS = metrics.KStest(real_data, synthetic_data, cat_columns, target_var)
+                        print(mean_KS)                    
 
-                    results.loc[i,'Saved_model'] = result.name
-                    results.loc[i,'Dataset'] = data_type
-                    results.loc[i,'TabSynDex_score'] = scores['score']
-                    results.loc[i,'Basic_score'] = scores['basic_score']
-                    results.loc[i,'Correlation_score'] = scores['corr_score']
-                    results.loc[i,'Machine_learning_efficiency_score'] = scores['ml_score']
-                    results.loc[i,'Support_coverage_score'] = scores['sup_score']
-                    results.loc[i,'PMSE_score'] = scores['pmse_score']
-                    results.loc[i,'Missing_unique_values'] = missing_unique
-                    results.loc[i,'mean_Hellinger_Distance'] = mean_HD
-                    results.loc[i,'mean_Kolmogorov_Smirnov_test'] = mean_KS
-                    for metric in ml_metrics:
-                        results.loc[i,metric] = ml_metrics[metric]
-                    i+=1
-            os.chdir('..')
-            print(os.getcwd())
-            os.chdir('..')
-            print(os.getcwd())
+                        results.loc[i,'Saved_model'] = result.name
+                        results.loc[i,'Dataset'] = data_type
+                        results.loc[i,'TabSynDex_score'] = scores['score']
+                        results.loc[i,'Basic_score'] = scores['basic_score']
+                        results.loc[i,'Correlation_score'] = scores['corr_score']
+                        results.loc[i,'Machine_learning_efficiency_score'] = scores['ml_score']
+                        results.loc[i,'Support_coverage_score'] = scores['sup_score']
+                        results.loc[i,'PMSE_score'] = scores['pmse_score']
+                        results.loc[i,'Missing_unique_values'] = missing_unique
+                        results.loc[i,'mean_Hellinger_Distance'] = mean_HD
+                        results.loc[i,'mean_Kolmogorov_Smirnov_test'] = mean_KS
+                        for metric in ml_metrics:
+                            results.loc[i,metric] = ml_metrics[metric]
+                        i+=1
+                    else:
+                        print('Target variable does not contain all categories.')
+                        continue
+
+        os.chdir('..')
+        print(os.getcwd())
+        os.chdir('..')
+        print(os.getcwd())
 
     return results
 

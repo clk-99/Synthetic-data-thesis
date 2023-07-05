@@ -106,7 +106,7 @@ def create_model_performance_plot(data_type,df,x,y):
 
     ax = sns.scatterplot(data=df,x=x,y=y,hue='Model_type')
     ax.collections[0].set_sizes([200])
-    ax.set_title("Model performance plot for data "+str(data_type)+" between "+str(x)+" and "+str(y))
+    ax.set_title("Generators performance plot for data "+str(data_type)+" between "+str(x)+" and "+str(y))
     fig.savefig("lineplot_performance_"+str(x)+"_"+str(y)+".pdf")
     plt.close()
 
