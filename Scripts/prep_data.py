@@ -6,7 +6,6 @@ from sklearn.preprocessing import LabelEncoder
 import zipfile
 
 #import self-written library
-import visuals
 
 #ignore warnings
 import warnings
@@ -34,13 +33,11 @@ def main(data_path,dataset,cat_columns,target,outliers_bool):
     real_test_data = pd.concat([X_test.reset_index(drop=True),
                                     y_test.reset_index(drop=True)],axis=1)
     
-    table_dict = create_metadata(real_train_data) #create metadata dictionary for CTGAN and TVAE
-
     real_train_data.to_csv(data_folder + '/' + dataset + '/' + dataset +'_TRAIN_SET.csv',index_label='Index')
     real_test_data.to_csv(data_folder + '/' + dataset + '/' + dataset +'_TEST_SET.csv',index_label='Index')
 
 
-    return real_train_data, table_dict  
+    return real_train_data  
 
 
 def load_dataset(data_type,data_path,cat_columns):
@@ -101,37 +98,37 @@ def label_encoding(df,cat_columns):
     
     return df
 
-def create_metadata(df):    
-    table_dict = dict()
-    table_dict['METADATA_SPEC_VERSION'] = 'SINGLE_TABLE_V1'
-    object_columns = df.dtypes[df.dtypes=='object'].index.to_list()
-    int_columns = df.dtypes[df.dtypes=='int64'].index.to_list()
-    float_columns = df.dtypes[df.dtypes=='float64'].index.to_list()
-    all_columns = df.dtypes.index.to_list()
-    col_dict = dict()
+# def create_metadata(df):    
+#     table_dict = dict()
+#     table_dict['METADATA_SPEC_VERSION'] = 'SINGLE_TABLE_V1'
+#     object_columns = df.dtypes[df.dtypes=='object'].index.to_list()
+#     int_columns = df.dtypes[df.dtypes=='int64'].index.to_list()
+#     float_columns = df.dtypes[df.dtypes=='float64'].index.to_list()
+#     all_columns = df.dtypes.index.to_list()
+#     col_dict = dict()
 
-    for col in all_columns:
-        #create for each column a dictionary and add to table_dict
-        if col in float_columns:
-            float_dict = dict()
-            float_dict['sdtype'] = 'numerical'
-            float_dict['computer_representation'] = 'Float'
-            col_dict[col] = float_dict
+#     for col in all_columns:
+#         #create for each column a dictionary and add to table_dict
+#         if col in float_columns:
+#             float_dict = dict()
+#             float_dict['sdtype'] = 'numerical'
+#             float_dict['computer_representation'] = 'Float'
+#             col_dict[col] = float_dict
 
-        elif col in int_columns:
-            int_dict = dict()
-            int_dict['sdtype'] = 'numerical'
-            int_dict['computer_representation'] = 'Int64'
-            col_dict[col] = int_dict
+#         elif col in int_columns:
+#             int_dict = dict()
+#             int_dict['sdtype'] = 'numerical'
+#             int_dict['computer_representation'] = 'Int64'
+#             col_dict[col] = int_dict
         
-        else: #col in object_columns
-            object_dict = dict()
-            object_dict['sdtype'] = 'categorical'
-            col_dict[col] = object_dict
+#         else: #col in object_columns
+#             object_dict = dict()
+#             object_dict['sdtype'] = 'categorical'
+#             col_dict[col] = object_dict
 
-    table_dict['columns'] = col_dict
+#     table_dict['columns'] = col_dict
 
-    return table_dict    
+#     return table_dict    
 
         
     

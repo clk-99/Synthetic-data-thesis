@@ -10,7 +10,10 @@ import tabsyndex as ts
 import metrics  
 import visuals as vs
 from pathlib import Path
-from sdv.single_table import CTGANSynthesizer, TVAESynthesizer
+
+import synthcity
+from synthcity.plugins import Plugins
+from synthcity.utils.serialization import load_from_file
 
 import os
 
@@ -70,7 +73,7 @@ cat_columns_dict = {
 }
 
 def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_var,target_type='class',multi_target=False):
-    models = ['arf','cart'] #,'ctgan','tvae','tabddpm' 
+    models = ['arf','cart','ctgan','tvae','tabddpm']
     results = pd.DataFrame()
     i = 0
     for m in models:
@@ -92,12 +95,14 @@ def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_v
                     elif m == 'cart':
                         synthetic_data = reload_CART(real_data,cat_columns,result.name)
                         
-                    elif m == 'ctgan': 
-                        #reload ctgan model
-                        synthetic_data = reload_CTGAN(real_data,result.name)
+                    else: 
+                        #reload deep generative model
+                        os.chdir('..')
+                        os.chdir('..')
+                        result_path = output_path + '/' + result.name
 
-                    elif m == 'tvae': #tvae model
-                        synthetic_data = reload_TVAE(real_data,result.name)
+                        synthetic_data = reload_generative_models(real_data, result_path)
+                        os.chdir(output_path)               
                     
                     for c in cat_columns:
                         synthetic_data[c] = synthetic_data[c].astype(str).str.split('.').str[0]
@@ -210,37 +215,27 @@ def reload_CART(df,cat_vars,result):
 
     return synthetic_data
 
-def reload_CTGAN(df,result):
-    ctgan_model = CTGANSynthesizer.load(filepath=result)
-    synthetic_data = ctgan_model.sample(num_rows=len(df))
-
-    return synthetic_data
-
-def reload_TVAE(df,result):
-    tvae_model = TVAESynthesizer.load(filepath=result)
-    synthetic_data = tvae_model.sample(num_rows=len(df))
+def reload_generative_models(df,result):
+    reloaded_model = load_from_file(result)
+    synthetic_data = reloaded_model.generate(count=len(df)).dataframe()
 
     return synthetic_data
 
 def generate_visualize_best_SDG(real_df,cat_columns,sdg,dataset,data_path,output_path):
     model = sdg.split('.')[0].split('_')[0]
+    lowercase_model = model.lower()
     print(model)
-    if model == 'CART':
-        model_path = data_path + 'cart/'
-        os.chdir(model_path)
+    model_path = data_path + lowercase_model + '/'
+    os.chdir(model_path)
+
+    if model == 'cart':
         syn_df = reload_CART(real_df,cat_columns,sdg)
-    elif model == 'ARF':
-        model_path = data_path + 'arf/'
-        os.chdir(model_path)
+
+    elif model == 'arf':
         syn_df = reload_ARF(real_df,cat_columns,sdg)
-    elif model == 'CTGAN':
-        model_path = data_path + 'ctgan/'
-        os.chdir(model_path)
-        syn_df = reload_CTGAN(real_df,sdg)
-    else: #tvae model
-        model_path = data_path + 'tvae/'
-        os.chdir(model_path)
-        syn_df = reload_TVAE(real_df,sdg)
+    
+    else: #DGN models (tvae, ctgan & ddpm)
+        syn_df = reload_generative_models(real_df,sdg)
     
     os.chdir('..')
     os.chdir('..')
