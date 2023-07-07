@@ -7,6 +7,7 @@ import sklearn
 import matplotlib.pyplot as plt
 
 from sklearn.cluster import KMeans
+from sklearn.neighbours import NearestNeighbors
 from sklearn.decomposition import PCA
 from sklearn.metrics import  roc_auc_score, accuracy_score, precision_score, recall_score, f1_score, explained_variance_score, mean_squared_error, r2_score
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
@@ -34,14 +35,6 @@ def hellinger_distance(real_df,syn_df): #for numeric features only?
     hellinger_distance = sum(hellinger.values()) / len(hellinger)
     
     return hellinger_distance
-
-def log_cluster(real_df,syn_df): #cluster metric
-
-    real_df['Data'] = 'Real'
-    syn_df['Data'] = 'Synthetic'
-
-    #merged_df = 
-    return
 
 def KStest(real_df,syn_df,cat_columns,target_var): #statistical test
     """
@@ -136,7 +129,7 @@ def MLefficiency(syn_df, test_df, cat_cols, target_var, target_type='class', mul
 
         if multi: #multi-class classification
             performance_metrics['AUC'] = roc_auc_score(y_test, y_pred,multi_class='ovr')
-            performance_metrics['F1_score'] = f1_score(y_test, y_pred,average='weighted')
+            performance_metrics['F1_score'] = f1_score(y_test, y_pred,average='micro')
         else: #binary classification
             performance_metrics['AUC'] = roc_auc_score(y_test, y_pred)
             performance_metrics['F1_score'] = f1_score(y_test, y_pred,average='binary')
