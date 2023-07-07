@@ -136,6 +136,7 @@ def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_v
                         i+=1
                     else:
                         print('Target variable does not contain all categories.')
+                        i+=1
                         continue
 
         os.chdir('..')
@@ -185,13 +186,11 @@ def merge_models(data_type,metrics_df,data_path):
         final_df['Train_time(in seconds)'] = final_df['Train_time(in seconds)'].combine_first(final_df['Est_train_time'])
         print(final_df.head())
         #final_df.drop('Est_train_time',inplace=True)
-    temp_v2_df = final_df.merge(metrics_df,how='left')
-    print(temp_v2_df.head())
-    final_df = temp_v2_df
 
-    final_df.to_csv('../Data/'+data_type+'/final_results_SDG_'+data_type+'.csv',index_label='Index') 
+    result_df = final_df.merge(metrics_df,on='Saved_model',how='left')
+    result_df.to_csv('../Data/'+data_type+'/final_results_SDG_'+data_type+'.csv',index_label='Index') 
 
-    return final_df
+    return result_df
 
 def reload_ARF(df,cat_vars,result):
     with localconverter(ro.default_converter + pandas2ri.converter):
@@ -259,6 +258,7 @@ if dataset:
     test_data = pd.read_csv(path_test_data,index_col=0,dtype={col:'object' for col in cat_vars})
     if metric_type == 'metrics':
         performance_df = evaluate_models(real_data,test_data,dataset,data_path,cat_vars,target_col,target_type[dataset],multi_target_bool[dataset])
+        print(performance_df.head())
         results_df = merge_models(dataset,performance_df,data_path)
     if metric_type == 'visuals':
         result_path = data_folder + '/' + dataset + '/final_results_SDG_' + dataset + '.csv'
