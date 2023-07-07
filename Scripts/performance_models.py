@@ -160,7 +160,7 @@ def tune_performance_ddpm(data_type,df,target_var,output_path,nr_combinations):
         performance_df.loc[i,'Batch_size'] = plugin_params['batch_size']
         performance_df.loc[i,'Num_timesteps'] = plugin_params['num_timesteps']
         performance_df.loc[i,'Learning_rate'] = plugin_params['lr']
-        performance_df.loc[i,'Embedding_dim'] = plugin_params['dim_embed']
+        performance_df.loc[i,'Embedding_dimension'] = plugin_params['dim_embed']
         performance_df.loc[i,'Nr_hidden_layers'] = plugin_params['model_params']['n_layers_hidden']
         performance_df.loc[i,'Nr_hidden_units'] = plugin_params['model_params']['n_units_hidden']
         performance_df.loc[i,'Dropout_rate'] = plugin_params['model_params']['dropout']
