@@ -227,10 +227,10 @@ def generate_visualize_best_SDG(real_df,cat_columns,sdg,dataset,data_path,output
     model_path = data_path + lowercase_model + '/'
     os.chdir(model_path)
 
-    if model == 'cart':
+    if lowercase_model == 'cart':
         syn_df = reload_CART(real_df,cat_columns,sdg)
 
-    elif model == 'arf':
+    elif lowercase_model == 'arf':
         syn_df = reload_ARF(real_df,cat_columns,sdg)
     
     else: #DGN models (tvae, ctgan & ddpm)
