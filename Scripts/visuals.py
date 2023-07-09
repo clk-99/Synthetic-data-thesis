@@ -131,7 +131,7 @@ def create_dgn_performance_plot(data_type,model,df,x,y):
     ax = sns.scatterplot(data=df,x=x,y=y,hue='Model_type')
     ax.collections[0].set_sizes([200])
     ax.set_title(str(model)+" performance plot for data "+str(data_type)+" between "+str(x)+" and "+str(y))
-    fig.savefig("lineplot_performance_"+str(x)+"_"+str(y)+".pdf")
+    fig.savefig(model+"_performance_"+str(x)+"_"+str(y)+".pdf")
     plt.close()
     
 def find_best_clusters(df, max_K):
