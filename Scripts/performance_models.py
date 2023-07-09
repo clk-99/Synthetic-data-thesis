@@ -1,3 +1,8 @@
+"""
+Deep generative models (CTGAN, TVAE & TABDDPM) are imported from https://github.com/vanderschaarlab/synthcity/tree/main/src/synthcity
+and models built using R (ARF & CART) from https://github.com/bips-hb/arf and https://github.com/bnowok/synthpop/tree/master respectively
+"""
+
 import torch
 import pandas as pd
 import numpy as np
@@ -12,8 +17,6 @@ import synthcity
 from synthcity.plugins import Plugins
 from synthcity.plugins.core.dataloader import GenericDataLoader
 from synthcity.utils.serialization import save_to_file
-
-#os.environ['R_HOME'] = 'V:\KS\Software\R\R-4.2.2' #adjust to version of LISA
 
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri
