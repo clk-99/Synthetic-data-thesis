@@ -1,3 +1,9 @@
+"""
+References: 
+- "A Multi-Dimensional Evaluation of Synthetic Data Generators" Authors: Fida K. Dankar, Mahmoud K. Ibrahim, AND Leila Ismail.
+- numerical_encoding(): from dython package. Github: https://github.com/shakedzy/dython.
+"""
+
 import pandas as pd
 import numpy as np
 import math
@@ -7,7 +13,6 @@ import sklearn
 import matplotlib.pyplot as plt
 
 from sklearn.cluster import KMeans
-from sklearn.neighbours import NearestNeighbors
 from sklearn.decomposition import PCA
 from sklearn.metrics import  roc_auc_score, accuracy_score, precision_score, recall_score, f1_score, explained_variance_score, mean_squared_error, r2_score
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
@@ -15,7 +20,7 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-def hellinger_distance(real_df,syn_df): #for numeric features only?
+def hellinger_distance(real_df,syn_df): 
     """
     A function that returns the mean Hellinger Distance of real and synthetic datasets over all features.
     """
@@ -59,6 +64,10 @@ def KStest(real_df,syn_df,cat_columns,target_var): #statistical test
     return mean_ks
 
 def unique_values_check(df1, df2):
+    """
+    A function that controls two dataframes on their set of unique values.
+    Returns: dataframe filled with additional columns missing from set of unique values
+    """
     missing_cols = set(df1.columns.to_list()) - set(df2.columns.to_list())
     print(missing_cols)
     for m in missing_cols:
@@ -67,6 +76,9 @@ def unique_values_check(df1, df2):
     return df2
 
 def numerical_encoding(dataset,nominal_columns):
+    """
+    A function that returns one-hot encoding of all categorical features from dataframe.
+    """
     converted_dataset = pd.DataFrame()
     
     for col in dataset.columns:
@@ -81,7 +93,21 @@ def numerical_encoding(dataset,nominal_columns):
     
     return converted_dataset
 
-def MLefficiency(syn_df, test_df, cat_cols, target_var, target_type='class', multi=False): #own metric to test the performance of synthetic dataset    
+def MLefficiency(syn_df, test_df, cat_cols, target_var, target_type='class', multi=False): 
+    """
+    A function that returns ML efficiency metrics where synthetic data is input for training 
+    and test set from real data set as evaluation. 
+    
+    If classification problem, the following metrics are returned:
+    - AUC score
+    - F1 score
+    - Accuracy
+
+    If regression problem, the following metrics are returned:
+    - Explained variance
+    - R^2
+    - MSE (mean squared error)
+    """
     cat_vars = cat_cols.copy()
     if not multi:
         cat_vars.remove(target_var)
