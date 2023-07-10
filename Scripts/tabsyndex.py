@@ -1,3 +1,12 @@
+"""
+References: 
+"TabSynDex: A Universal Metric for Robust Evaluation of Synthetic Tabular Data" 
+Authors: Vikram S Chundawat, Ayush K Tarun, Murari Mandal, Mukund Lahoti & Pratik Narang.
+
+Except for some minor changes, most of the code originates from this github:
+https://github.com/vikram2000b/tabsyndex/tree/main 
+"""
+
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -115,7 +124,6 @@ def tabsyndex(real_data, fake_data, cat_cols, target_col, target_type):
     fake_x = fake_data_norm.drop(target_col, axis=1)
     fake_y = fake_data_norm[target_col]
 
-    #print(list(zip(real_x.columns,fake_x.columns)))
     if target_type == 'regr':
         r_estimators = [
                     RandomForestRegressor(n_estimators=20, max_depth=5, random_state=42),
