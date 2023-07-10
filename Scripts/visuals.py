@@ -128,12 +128,26 @@ def create_dgn_performance_plot(data_type,model,df,x,y):
 
     df[["Model_type","id"]] = df.Saved_model.str.split("_",expand=True)
     df = df[df["Model_type"]==model]
-    ax = sns.scatterplot(data=df,x=x,y=y,hue='Model_type')
+    ax = sns.scatterplot(data=df,x=x,y=y,style='Dataset_x',hue='Model_type')
     ax.collections[0].set_sizes([200])
     ax.set_title(str(model)+" performance plot for data "+str(data_type)+" between "+str(x)+" and "+str(y))
-    fig.savefig(model+"_performance_"+str(x)+"_"+str(y)+".pdf")
+    fig.savefig(model+"_plot_performance_"+str(x)+"_"+str(y)+".pdf")
     plt.close()
+
+def create_performance_SDGs_all(df,datasets,datapath):
+    x='Train_time(in seconds)'
+    y='TabSynDex_score'
+    fig, ax = plt.subplots(figsize=(11,9))
+    df[["Model_type","id"]] = df.Saved_model.str.split("_",expand=True)
+    df = df[df["Model_type"]==model]
+    ax = sns.scatterplot(data=df,x=x,y=y,hue='Model_type')
+    ax.collections[0].set_sizes([200])
+    ax.set_title("All SDGs performance plot for all datasets between "+str(x)+" and "+str(y))
+    fig.savefig(datapath+"/all_datasets_plot_performance_"+str(x)+"_"+str(y)+".pdf")
+    plt.close()
+
     
+
 def find_best_clusters(df, max_K):
     clusters_centers = []
     k_values = []
