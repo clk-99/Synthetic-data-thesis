@@ -121,7 +121,6 @@ def evaluate_models(real_data,test_data,data_type,data_path,cat_columns,target_v
                         print(mean_KS)                    
 
                         results.loc[i,'Saved_model'] = result.name
-                        results.loc[i,'Dataset'] = data_type
                         results.loc[i,'TabSynDex_score'] = scores['score']
                         results.loc[i,'Basic_score'] = scores['basic_score']
                         results.loc[i,'Correlation_score'] = scores['corr_score']
