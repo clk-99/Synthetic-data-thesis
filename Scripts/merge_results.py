@@ -23,7 +23,12 @@ def merge_results_dataset(datasets,current_directory):
             for result in it:
                 print(result.name)  
                 if re.search('final_results_SDG',result.name):
-                    performance_df = pd.read_csv(result.name,delimiter=',',index_col=0)     
+                    performance_df = pd.read_csv(result.name,delimiter=',',index_col=0)  
+                    if ["Dataset_x","Dataset_y"] in performance_df.columns:
+                        print("Something went wrong during merge!")
+                        performance_df[["Dataset","x"]] = performance_df.Dataset_x.str.split("_",expand=True)   
+                        performance_df[["Dataset","y"]] = performance_df.Dataset_y.str.split("_",expand=True)
+                        performance_df.drop(columns=["x,y"],inplace=True)
                     temp_df = pd.concat([merged_dfs,performance_df],ignore_index=True)
                     merged_dfs = temp_df
                 else:
