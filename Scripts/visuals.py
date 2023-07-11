@@ -138,8 +138,8 @@ def create_performance_SDGs_all(df,datasets,datapath):
     x='Train_time(in seconds)'
     y='TabSynDex_score'
     fig, ax = plt.subplots(figsize=(11,9))
-    df[["Model_type","id"]] = df.Saved_model.str.split("_",expand=True)
-    df = df[df["Model_type"]==model]
+    df[["Model_type","id"]] = df.Saved_model.str.split("_",expand=True)    
+
     ax = sns.scatterplot(data=df,x=x,y=y,style='Dataset',hue='Model_type')
     ax.collections[0].set_sizes([200])
     ax.set_title("All SDGs performance plot for all datasets between "+str(x)+" and "+str(y))
